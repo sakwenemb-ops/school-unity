@@ -5,7 +5,7 @@
     <input type="hidden" name="_csrf" value="<%= csrf %>">
     <div style="display:flex;justify-content:space-between"><code><%= p.code %></code><span class="badge b-brand"><%= p.schools %> schools</span></div>
     <div class="field" style="margin-top:12px"><label>Name</label><input type="text" name="name" value="<%= p.name %>" required></div>
-    <div class="field"><label>Price / month</label><input type="number" step="0.01" min="0" name="price_monthly" value="<%= p.price_monthly %>"></div>
+    <div class="field"><label>Price / month (<%= PLATFORM_CURRENCY %>)</label><input type="number" step="any" min="0" name="price_monthly" value="<%= p.price_monthly %>"></div>
     <div class="form-grid">
       <div class="field"><label>Student limit</label><input type="number" min="0" name="student_limit" value="<%= p.student_limit ?? '' %>"></div>
       <div class="field"><label>Teacher limit</label><input type="number" min="0" name="teacher_limit" value="<%= p.teacher_limit ?? '' %>"></div>

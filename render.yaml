@@ -1,0 +1,31 @@
+# Render Blueprint for School Unity. In Render: New → Blueprint → pick this repository.
+# See DEPLOY.md for the full walkthrough.
+services:
+  - type: web
+    name: school-unity
+    runtime: node
+    plan: starter            # paid instance: needed for the persistent disk (free instances lose data)
+    region: frankfurt        # closest Render region to Central Africa
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: true
+    disk:
+      name: school-unity-data
+      mountPath: /var/data   # SQLite database and sessions live here and survive deploys
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: DB_FILE
+        value: /var/data/school-unity.db
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: OWNER_EMAIL       # platform owner login, created on first start
+        sync: false
+      - key: OWNER_PASSWORD    # at least 10 characters
+        sync: false
+      - key: NOTCHPAY_PUBLIC_KEY   # Notch Pay public key: sandbox key to test, live key to take real payments
+        sync: false

@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS schools (
   address TEXT,
   motto TEXT,
   country TEXT,
-  currency TEXT NOT NULL DEFAULT 'USD',
+  currency TEXT NOT NULL DEFAULT 'XAF',
   plan TEXT NOT NULL DEFAULT 'free' REFERENCES plans(code),
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','suspended')),
   academic_year TEXT NOT NULL DEFAULT '2026',
@@ -186,6 +186,29 @@ CREATE TABLE IF NOT EXISTS payments (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Online checkouts through Notch Pay: student fee payments and school plan payments.
+CREATE TABLE IF NOT EXISTS online_payments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL CHECK (kind IN ('fee','plan')),
+  student_id INTEGER REFERENCES students(id) ON DELETE SET NULL,
+  plan_code TEXT,
+  term TEXT,
+  academic_year TEXT,
+  amount REAL NOT NULL,
+  currency TEXT NOT NULL,
+  reference TEXT NOT NULL UNIQUE,      -- our reference, sent to Notch Pay
+  provider_reference TEXT,             -- Notch Pay's transaction reference
+  checkout_url TEXT,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','complete','failed','canceled','expired')),
+  payment_id INTEGER REFERENCES payments(id) ON DELETE SET NULL,
+  phone TEXT,
+  email TEXT,
+  initiated_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  completed_at TEXT
+);
+
 CREATE TABLE IF NOT EXISTS announcements (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   school_id INTEGER NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
@@ -226,15 +249,26 @@ CREATE INDEX IF NOT EXISTS idx_att_school_date ON attendance(school_id, date);
 CREATE INDEX IF NOT EXISTS idx_grades_exam ON grades(exam_id, student_id);
 CREATE INDEX IF NOT EXISTS idx_payments_student ON payments(school_id, student_id);
 CREATE INDEX IF NOT EXISTS idx_activity_school ON activity_log(school_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_online_provider_ref ON online_payments(provider_reference);
+CREATE INDEX IF NOT EXISTS idx_online_school ON online_payments(school_id, kind, created_at);
 `);
 
-// Default subscription plans
+// Columns added after the first release (CREATE TABLE IF NOT EXISTS won't add them to existing databases).
+const hasColumn = (table, col) => db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === col);
+if (!hasColumn('schools', 'paid_until')) db.exec('ALTER TABLE schools ADD COLUMN paid_until TEXT'); // paid plan covered until this date
+
+// Default subscription plans, priced monthly in the platform currency (XAF).
+// The platform owner can change names, prices and limits under Platform → Plans.
 const planCount = db.prepare('SELECT COUNT(*) AS n FROM plans').get().n;
 if (!planCount) {
   const ins = db.prepare('INSERT INTO plans (code,name,price_monthly,student_limit,teacher_limit,description) VALUES (?,?,?,?,?,?)');
   ins.run('free', 'Starter', 0, 50, 5, 'For small schools getting started');
-  ins.run('basic', 'Growth', 49, 500, 40, 'For growing primary & secondary schools');
-  ins.run('premium', 'Enterprise', 149, null, null, 'Unlimited students, staff and priority support');
+  ins.run('basic', 'Growth', 25000, 500, 40, 'For growing primary & secondary schools');
+  ins.run('premium', 'Enterprise', 75000, null, null, 'Unlimited students, staff and priority support');
+} else {
+  // Older databases were created with the original USD prices; move untouched defaults to XAF.
+  db.prepare("UPDATE plans SET price_monthly=25000 WHERE code='basic' AND price_monthly=49").run();
+  db.prepare("UPDATE plans SET price_monthly=75000 WHERE code='premium' AND price_monthly=149").run();
 }
 
 const clean = (params) => params.map((p) => (p === undefined || p === '' ? null : p));

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('../partials/head') %></head>
+<body>
+<div class="auth-wrap">
+  <div class="card auth-card" style="text-align:center">
+    <div class="logo" style="margin:0 auto 14px;width:48px;height:48px;font-size:18px">SU</div>
+    <h1><%= title %></h1>
+    <div class="alert alert-<%= result.type %>" role="status"><%= result.message %></div>
+    <p class="muted" style="font-size:13px">Reference <code><%= row.reference %></code></p>
+    <% if (row.status === 'pending') { %><a class="btn btn-block" href="/pay/return/<%= row.reference %>">Check status</a><% } %>
+    <a class="btn btn-primary btn-block" href="/login" style="margin-top:8px">Sign in to School Unity</a>
+  </div>
+</div>
+</body>
+</html>

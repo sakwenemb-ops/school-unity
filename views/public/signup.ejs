@@ -10,7 +10,7 @@
         <div class="form-grid">
           <div class="field full"><label for="school_name">School name</label><input id="school_name" name="school_name" type="text" required value="<%= form.school_name || '' %>" placeholder="e.g. Greenfield Academy"></div>
           <div class="field"><label for="country">Country</label><input id="country" name="country" type="text" value="<%= form.country || '' %>"></div>
-          <div class="field"><label for="currency">Currency code</label><input id="currency" name="currency" type="text" maxlength="3" value="<%= form.currency || 'USD' %>"><div class="hint">e.g. USD, KES, UGX, NGN, GBP</div></div>
+          <div class="field"><label for="currency">Currency code</label><input id="currency" name="currency" type="text" maxlength="3" value="<%= form.currency || DEFAULT_CURRENCY %>"><div class="hint">e.g. XAF (CFA franc), XOF, NGN, KES, USD</div></div>
           <div class="field full"><label for="phone">School phone</label><input id="phone" name="phone" type="tel" value="<%= form.phone || '' %>"></div>
         </div>
       </fieldset>

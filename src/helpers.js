@@ -1,5 +1,6 @@
 // View + domain helpers shared by routes and templates.
 const { q } = require('./db');
+const { PLATFORM_CURRENCY, DEFAULT_CURRENCY } = require('./config');
 
 function gradeFor(pct) {
   if (pct == null || isNaN(pct)) return '-';
@@ -11,7 +12,8 @@ function gradeFor(pct) {
   return 'F';
 }
 
-function money(amount, currency = 'USD') {
+// Without a currency, amounts are platform prices (subscription plans), charged in PLATFORM_CURRENCY.
+function money(amount, currency = PLATFORM_CURRENCY) {
   const n = Number(amount || 0);
   try {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(n);
@@ -74,4 +76,9 @@ function toCsv(rows, columns) {
   return [head, ...body].join('\n');
 }
 
-module.exports = { gradeFor, money, fmtDate, today, slugify, initials, nextCode, feeSummary, toCsv };
+// Normalises a user-entered currency code; anything that isn't 3 letters falls back to the default.
+function currencyCode(v) {
+  return /^[A-Za-z]{3}$/.test(String(v || '').trim()) ? String(v).trim().toUpperCase() : DEFAULT_CURRENCY;
+}
+
+module.exports = { gradeFor, money, fmtDate, today, slugify, initials, nextCode, feeSummary, toCsv, currencyCode, DEFAULT_CURRENCY, PLATFORM_CURRENCY };
