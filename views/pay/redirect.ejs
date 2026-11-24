@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('../partials/head') %><meta http-equiv="refresh" content="0;url=<%= url %>"></head>
+<body>
+<div class="auth-wrap">
+  <div class="card auth-card" style="text-align:center">
+    <div class="logo" style="margin:0 auto 14px;width:48px;height:48px;font-size:18px">SU</div>
+    <h1>Taking you to Notch Pay…</h1>
+    <p class="muted">You'll pay <strong><%= money(row.amount, row.currency) %></strong> securely on Notch Pay with MTN Mobile Money, Orange Money or a card, then come back here automatically.</p>
+    <a class="btn btn-primary btn-block" href="<%= url %>">Continue to Notch Pay</a>
+    <p class="muted" style="margin-top:12px;font-size:13px">Reference <code><%= row.reference %></code></p>
+  </div>
+</div>
+</body>
+</html>

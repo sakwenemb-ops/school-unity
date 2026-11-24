@@ -14,9 +14,17 @@
         <div class="form-grid">
           <div class="field"><label>Plan</label><select name="plan"><% plans.forEach(function (p) { %><option value="<%= p.code %>" <%= p.code === school.plan ? 'selected' : '' %>><%= p.name %> (<%= money(p.price_monthly) %>)</option><% }) %></select></div>
           <div class="field"><label>Status</label><select name="status"><option value="active" <%= school.status === 'active' ? 'selected' : '' %>>Active</option><option value="suspended" <%= school.status === 'suspended' ? 'selected' : '' %>>Suspended</option></select></div>
+          <div class="field full"><label for="paid_until">Paid until</label><input id="paid_until" type="date" name="paid_until" value="<%= school.paid_until || '' %>">
+            <div class="hint">Set automatically when the school pays through Notch Pay. Change it to record a cash or bank payment, or to give free time.<% if (school.trial_ends_at) { %> Trial ends <%= fmtDate(school.trial_ends_at) %>.<% } %></div></div>
         </div>
         <button class="btn btn-primary">Save subscription</button>
       </form>
+      <% if (planPayments.length) { %>
+        <div class="table-wrap" style="border-top:1px solid var(--line)"><table><thead><tr><th>Date</th><th>Plan</th><th>Status</th><th class="num">Amount</th></tr></thead><tbody>
+          <% planPayments.forEach(function (h) { %><tr><td><%= fmtDate(h.completed_at || h.created_at) %><br><small><code><%= h.reference %></code></small></td><td><%= h.plan_name || h.plan_code %></td>
+            <td><span class="badge <%= h.status === 'complete' ? 'b-ok' : h.status === 'pending' ? 'b-warn' : 'b-bad' %>"><%= h.status === 'complete' ? 'Paid' : h.status %></span></td><td class="num"><%= money(h.amount, h.currency) %></td></tr><% }) %>
+        </tbody></table></div>
+      <% } %>
     </div>
     <div class="card"><div class="card-head"><h2>School administrators</h2></div>
       <ul class="list"><% admins.forEach(function (a) { %><li><strong><%= a.name %></strong> · <%= a.email %><br><small>Last login: <%= a.last_login ? fmtDate(a.last_login) : 'never' %></small></li><% }) %></ul>

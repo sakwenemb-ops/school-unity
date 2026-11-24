@@ -56,6 +56,9 @@
     <%- include('../partials/topbar') %>
     <main class="content">
       <%- include('../partials/flash') %>
+      <% const ps = role === 'admin' ? planStatus(school) : {}; if (ps.paid && ps.daysLeft != null && ps.daysLeft <= 3 && path !== '/app/billing') { %>
+        <div class="alert <%= ps.expired ? 'alert-error' : 'alert-info' %>">Your <%= school.plan_name %> plan <%= ps.onTrial ? 'trial' : '' %> <%= ps.expired ? 'ended on' : 'runs out on' %> <%= fmtDate(ps.until) %>. <a href="/app/billing">Renew now</a></div>
+      <% } %>
       <%- body %>
     </main>
   </div>

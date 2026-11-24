@@ -4,6 +4,30 @@
   <div class="card stat"><div><div class="num"><%= money(fees.paid, school.currency) %></div><div class="lbl">Paid</div></div></div>
   <div class="card stat"><div><div class="num" style="color:<%= fees.balance > 0 ? 'var(--bad)' : 'var(--ok)' %>"><%= money(fees.balance, school.currency) %></div><div class="lbl">Balance</div></div></div>
 </div>
+<% if (fees.balance > 0) { %>
+  <div class="card" style="margin-bottom:16px"><div class="card-head"><h2>Pay online</h2></div>
+    <% if (onlinePaymentsEnabled) { %>
+      <form class="card-body" method="post" action="/app/me/fees/pay"><input type="hidden" name="_csrf" value="<%= csrf %>">
+        <p class="muted" style="margin-top:0">Pay with MTN Mobile Money, Orange Money or a card through Notch Pay. The payment appears on your statement as soon as it's confirmed.</p>
+        <div class="form-grid">
+          <div class="field"><label for="amount">Amount (<%= school.currency %>)</label><input id="amount" type="number" name="amount" min="<%= step %>" max="<%= fees.balance %>" step="<%= step %>" value="<%= fees.balance %>" required><div class="hint">Your balance is <%= money(fees.balance, school.currency) %>. You can pay part of it.</div></div>
+          <div class="field"><label for="phone">Mobile money number</label><input id="phone" type="tel" name="phone" value="<%= s.guardian_phone || '' %>" placeholder="+237 6XX XX XX XX"><div class="hint">Optional. You can also enter it on the payment page.</div></div>
+        </div>
+        <button class="btn btn-primary"><svg><use href="#i-cash"/></svg>Pay now</button>
+      </form>
+    <% } else { %>
+      <div class="card-body"><p class="muted" style="margin:0">Online payment isn't available yet. Please pay at the school office or by bank transfer, and keep your receipt.</p></div>
+    <% } %>
+  </div>
+<% } %>
+<% if (online.length) { %>
+  <div class="card" style="margin-bottom:16px"><div class="card-head"><h2>Recent online payments</h2></div><div class="table-wrap"><table><thead><tr><th>Started</th><th>Reference</th><th>Status</th><th class="num">Amount</th><th></th></tr></thead><tbody>
+    <% online.forEach(function (o) { %><tr><td><%= fmtDate(o.created_at) %></td><td><code><%= o.reference %></code></td>
+      <td><span class="badge <%= o.status === 'pending' ? 'b-warn' : 'b-bad' %>"><%= o.status === 'pending' ? 'Waiting for confirmation' : o.status %></span></td>
+      <td class="num"><%= money(o.amount, o.currency) %></td>
+      <td><% if (o.status === 'pending') { %><a href="/pay/return/<%= o.reference %>">Check status</a><% } %></td></tr><% }) %>
+  </tbody></table></div></div>
+<% } %>
 <div class="grid g-2">
   <div class="card"><div class="card-head"><h2>Fee breakdown</h2></div><ul class="list">
     <% items.forEach(function (i) { %><li style="display:flex;justify-content:space-between"><span><%= i.name %></span><b><%= money(i.amount, school.currency) %></b></li><% }) %>

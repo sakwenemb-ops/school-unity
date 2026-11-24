@@ -3,7 +3,9 @@ const bcrypt = require('bcryptjs');
 const { q, logActivity } = require('../db');
 const { flash, requireRole } = require('../middleware');
 const { visibleClasses, teacherClassIds } = require('../access');
-const { today, feeSummary } = require('../helpers');
+const { today, feeSummary, currencyCode, PLATFORM_CURRENCY } = require('../helpers');
+const onlinePayments = require('../online-payments');
+const { isProd } = require('../config');
 
 const router = express.Router();
 const adminOnly = requireRole('admin');
@@ -133,7 +135,7 @@ router.post('/settings', adminOnly, (req, res) => {
     return res.redirect('/app/settings');
   }
   q.run(`UPDATE schools SET name=?, email=?, phone=?, address=?, motto=?, country=?, currency=?, academic_year=?, current_term=? WHERE id=?`,
-    f.name.trim(), f.email, f.phone, f.address, f.motto, f.country, (f.currency || 'USD').toUpperCase().slice(0, 3), f.academic_year.trim(), f.current_term.trim(), req.school.id);
+    f.name.trim(), f.email, f.phone, f.address, f.motto, f.country, currencyCode(f.currency), f.academic_year.trim(), f.current_term.trim(), req.school.id);
   logActivity(req.school.id, req.user.id, 'Updated school settings');
   flash(req, 'success', 'Settings saved.');
   res.redirect('/app/settings');
@@ -170,22 +172,48 @@ router.get('/billing', adminOnly, (req, res) => {
     students: q.get("SELECT COUNT(*) n FROM students WHERE school_id=? AND status='active'", req.school.id).n,
     teachers: q.get('SELECT COUNT(*) n FROM teachers WHERE school_id=?', req.school.id).n,
   };
-  res.page('app/billing', { title: 'Plan & billing', plans, usage });
+  const history = q.all("SELECT op.*, p.name plan_name FROM online_payments op LEFT JOIN plans p ON p.code=op.plan_code WHERE op.school_id=? AND op.kind='plan' ORDER BY op.id DESC LIMIT 12", req.school.id);
+  res.page('app/billing', {
+    title: 'Plan & billing', plans, usage, history, status: onlinePayments.planStatus(req.school),
+    demoMode: !onlinePayments.enabled() && !isProd, periodDays: onlinePayments.PLAN_PERIOD_DAYS,
+  });
 });
 
-router.post('/billing', adminOnly, (req, res) => {
-  const plan = q.get('SELECT * FROM plans WHERE code=?', req.body.plan);
-  if (!plan) return res.redirect('/app/billing');
-  const students = q.get("SELECT COUNT(*) n FROM students WHERE school_id=? AND status='active'", req.school.id).n;
-  const teachers = q.get('SELECT COUNT(*) n FROM teachers WHERE school_id=?', req.school.id).n;
-  if ((plan.student_limit != null && students > plan.student_limit) || (plan.teacher_limit != null && teachers > plan.teacher_limit)) {
-    flash(req, 'error', `Your current usage exceeds the ${plan.name} plan limits.`);
-  } else {
-    q.run('UPDATE schools SET plan=? WHERE id=?', plan.code, req.school.id);
-    logActivity(req.school.id, req.user.id, `Changed subscription to ${plan.name}`);
-    flash(req, 'success', `You're now on the ${plan.name} plan.`);
-  }
-  res.redirect('/app/billing');
+// Choose a plan. Free plans switch immediately; paid plans (and renewals of the current
+// plan) are paid for one month at a time through Notch Pay and activate once paid.
+router.post('/billing', adminOnly, async (req, res, next) => {
+  try {
+    const plan = q.get('SELECT * FROM plans WHERE code=?', req.body.plan);
+    if (!plan) return res.redirect('/app/billing');
+    const students = q.get("SELECT COUNT(*) n FROM students WHERE school_id=? AND status='active'", req.school.id).n;
+    const teachers = q.get('SELECT COUNT(*) n FROM teachers WHERE school_id=?', req.school.id).n;
+    if ((plan.student_limit != null && students > plan.student_limit) || (plan.teacher_limit != null && teachers > plan.teacher_limit)) {
+      flash(req, 'error', `Your current usage exceeds the ${plan.name} plan limits.`);
+    } else if (!(plan.price_monthly > 0)) {
+      q.run('UPDATE schools SET plan=?, paid_until=NULL, trial_ends_at=NULL WHERE id=?', plan.code, req.school.id);
+      logActivity(req.school.id, req.user.id, `Changed subscription to ${plan.name}`);
+      flash(req, 'success', `You're now on the ${plan.name} plan.`);
+    } else if (onlinePayments.enabled()) {
+      try {
+        const ref = await onlinePayments.startCheckout(req, {
+          kind: 'plan', planCode: plan.code, amount: onlinePayments.roundAmount(plan.price_monthly, PLATFORM_CURRENCY), currency: PLATFORM_CURRENCY,
+          phone: String(req.school.phone || '').replace(/[^\d+]/g, '') || null,
+          description: `School Unity ${plan.name} plan, ${onlinePayments.PLAN_PERIOD_DAYS} days: ${req.school.name}`,
+        });
+        return res.redirect(303, '/pay/go/' + ref);
+      } catch (e) {
+        console.error('Notch Pay checkout failed:', e.message);
+        flash(req, 'error', 'We could not start the payment: ' + e.message);
+      }
+    } else if (!isProd) {
+      // Local demo without Notch Pay keys: activate without taking a payment.
+      onlinePayments.activatePlan(req.school.id, plan.code, req.user.id, 'demo mode, no payment');
+      flash(req, 'success', `You're now on the ${plan.name} plan (demo mode: no payment taken).`);
+    } else {
+      flash(req, 'error', "Online payments aren't set up yet, so paid plans can't be bought here. Please contact School Unity support.");
+    }
+    res.redirect('/app/billing');
+  } catch (e) { next(e); }
 });
 
 // ---------- My account ----------

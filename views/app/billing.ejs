@@ -1,4 +1,15 @@
-<div class="page-head"><div><h1>Plan &amp; billing</h1><p>You're on the <strong><%= school.plan_name %></strong> plan<%= school.trial_ends_at ? ' · trial ends ' + fmtDate(school.trial_ends_at) : '' %>.</p></div></div>
+<div class="page-head"><div><h1>Plan &amp; billing</h1>
+  <p>You're on the <strong><%= school.plan_name %></strong> plan<% if (status.paid && status.until) { %> · <%= status.onTrial ? 'free trial' : 'paid' %> <%= status.expired ? 'ended' : 'until' %> <strong><%= fmtDate(status.until) %></strong><% } %>.</p></div>
+  <% if (status.paid) { %>
+    <form method="post" action="/app/billing" data-confirm="Pay <%= money(school.price_monthly) %> for another <%= periodDays %> days of the <%= school.plan_name %> plan?"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="plan" value="<%= school.plan %>">
+      <button class="btn btn-primary"><svg><use href="#i-card"/></svg><%= status.onTrial || !status.until ? 'Pay now' : 'Renew' %> · <%= money(school.price_monthly) %></button></form>
+  <% } %>
+</div>
+<% if (status.paid && status.expired) { %>
+  <div class="alert alert-error">Your <%= school.plan_name %> plan <%= status.onTrial ? 'trial' : 'payment' %> ended on <%= fmtDate(status.until) %>. Renew to keep using the <%= school.plan_name %> plan.</div>
+<% } else if (status.paid && status.daysLeft != null && status.daysLeft <= 7) { %>
+  <div class="alert alert-info">Your <%= school.plan_name %> plan <%= status.onTrial ? 'trial ends' : 'is paid until' %> <%= fmtDate(status.until) %> (<%= status.daysLeft === 0 ? 'today' : status.daysLeft + ' day' + (status.daysLeft === 1 ? '' : 's') + ' left' %>).</div>
+<% } %>
 <div class="grid g-2" style="margin-bottom:16px">
   <% [['Active students', usage.students, school.student_limit], ['Teachers', usage.teachers, school.teacher_limit]].forEach(function (u) { const pct = u[2] ? Math.min(100, 100 * u[1] / u[2]) : 0; %>
     <div class="card card-body"><div style="display:flex;justify-content:space-between"><strong><%= u[0] %></strong><span><%= u[1] %> / <%= u[2] == null ? '∞' : u[2] %></span></div>
@@ -12,11 +23,23 @@
       <h3><%= p.name %></h3><p class="muted" style="margin:0"><%= p.description %></p>
       <div class="price"><%= p.price_monthly ? money(p.price_monthly) : 'Free' %><% if (p.price_monthly) { %> <small class="muted">/ month</small><% } %></div>
       <ul><li><%= p.student_limit == null ? 'Unlimited' : p.student_limit %> students</li><li><%= p.teacher_limit == null ? 'Unlimited' : p.teacher_limit %> teachers</li><li>All modules included</li></ul>
-      <% if (!current) { %>
-        <form method="post" action="/app/billing" data-confirm="Switch to the <%= p.name %> plan?"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="plan" value="<%= p.code %>">
-          <button class="btn btn-block <%= p.price_monthly > school.price_monthly ? 'btn-primary' : '' %>"><%= p.price_monthly > school.price_monthly ? 'Upgrade' : 'Switch' %> to <%= p.name %></button></form>
+      <% if (!current) { const up = p.price_monthly > school.price_monthly; %>
+        <form method="post" action="/app/billing" data-confirm="<%= p.price_monthly ? 'Pay ' + money(p.price_monthly) + ' for ' + periodDays + ' days of the ' + p.name + ' plan?' : 'Switch to the free ' + p.name + ' plan now?' + (status.paid && !status.expired ? ' Any paid time left on your current plan is lost.' : '') %>"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="plan" value="<%= p.code %>">
+          <button class="btn btn-block <%= up ? 'btn-primary' : '' %>"><%= up ? 'Upgrade' : 'Switch' %> to <%= p.name %></button></form>
       <% } else { %><button class="btn btn-block" disabled>Your plan</button><% } %>
     </div>
   <% }) %>
 </div>
-<p class="muted" style="margin-top:16px">Payment processing is not connected in this build — plan changes take effect immediately. Connect a payment provider (e.g. Stripe) in <code>src/routes/core.js</code> before going live.</p>
+<% if (history.length) { %>
+  <div class="card" style="margin-top:16px"><div class="card-head"><h2>Plan payments</h2></div><div class="table-wrap"><table>
+    <thead><tr><th>Date</th><th>Plan</th><th>Reference</th><th>Status</th><th class="num">Amount</th><th></th></tr></thead><tbody>
+    <% history.forEach(function (h) { %><tr><td><%= fmtDate(h.completed_at || h.created_at) %></td><td><%= h.plan_name || h.plan_code %></td><td><code><%= h.reference %></code></td>
+      <td><span class="badge <%= h.status === 'complete' ? 'b-ok' : h.status === 'pending' ? 'b-warn' : 'b-bad' %>"><%= h.status === 'complete' ? 'Paid' : h.status === 'pending' ? 'Waiting for confirmation' : h.status %></span></td>
+      <td class="num"><%= money(h.amount, h.currency) %></td><td><% if (h.status === 'pending') { %><a href="/pay/return/<%= h.reference %>">Check status</a><% } %></td></tr><% }) %>
+  </tbody></table></div></div>
+<% } %>
+<p class="muted" style="margin-top:16px">
+  <% if (onlinePaymentsEnabled) { %>Paid plans are billed monthly in <%= PLATFORM_CURRENCY %> through Notch Pay (MTN Mobile Money, Orange Money or card), <%= periodDays %> days per payment. Renewing early adds the time to your current period.
+  <% } else if (demoMode) { %>Demo mode: online payments aren't configured on this server, so plan changes take effect immediately without payment. Set <code>NOTCHPAY_PUBLIC_KEY</code> to bill through Notch Pay.
+  <% } else { %>Online payments aren't set up yet. Contact School Unity support to change to a paid plan.<% } %>
+</p>

@@ -26,13 +26,15 @@ q.run("INSERT INTO users (name,email,password_hash,role) VALUES ('Platform Owner
 const FIRST_M = ['James', 'Brian', 'Kevin', 'Daniel', 'Samuel', 'Peter', 'David', 'Joseph', 'Michael', 'John', 'Allan', 'Victor', 'Collins', 'Eric'];
 const FIRST_F = ['Mary', 'Grace', 'Faith', 'Joy', 'Mercy', 'Esther', 'Ruth', 'Sarah', 'Ann', 'Lucy', 'Diana', 'Agnes', 'Irene', 'Linda'];
 const LAST = ['Okello', 'Mwangi', 'Banda', 'Phiri', 'Mensah', 'Ndlovu', 'Kamau', 'Otieno', 'Achieng', 'Mutua', 'Nakato', 'Musa', 'Boateng', 'Wanjiru', 'Tembo', 'Ochieng'];
-const SUBJECTS = [['Mathematics', 'MAT'], ['English', 'ENG'], ['Science', 'SCI'], ['Social Studies', 'SST'], ['Kiswahili', 'KIS'], ['ICT', 'ICT']];
+const SUBJECTS = [['Mathematics', 'MAT'], ['English', 'ENG'], ['Science', 'SCI'], ['Social Studies', 'SST'], ['French', 'FRE'], ['ICT', 'ICT']];
 
 function seedSchool({ name, slug, email, plan, currency, adminEmail, teacherEmail, studentEmail, classNames, perClass, teachers = 6 }) {
   const sid = Number(q.run(
     `INSERT INTO schools (name,slug,email,phone,address,motto,country,currency,plan,academic_year,current_term)
      VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-    name, slug, email, '+254 700 000 000', '12 Unity Road', 'Learning together, growing together', 'Kenya', currency, plan, year, 'Term 1').lastInsertRowid);
+    name, slug, email, '+237 233 42 00 00', '12 Unity Road, Douala', 'Learning together, growing together', 'Cameroon', currency, plan, year, 'Term 1').lastInsertRowid);
+  // a paid plan starts with its current month already paid
+  if (plan !== 'free') q.run('UPDATE schools SET paid_until=? WHERE id=?', days(-20), sid);
   const adminId = Number(q.run("INSERT INTO users (school_id,name,email,password_hash,role) VALUES (?,?,?,?,'admin')", sid, name.startsWith('Green') ? 'Margaret Wanjiru' : 'Peter Mensah', adminEmail, hash('admin12345')).lastInsertRowid);
 
   const subjectIds = SUBJECTS.map(([n, c]) => Number(q.run('INSERT INTO subjects (school_id,name,code) VALUES (?,?,?)', sid, n, c).lastInsertRowid));
@@ -46,8 +48,8 @@ function seedSchool({ name, slug, email, plan, currency, adminEmail, teacherEmai
       `INSERT INTO teachers (school_id,staff_no,first_name,last_name,gender,email,phone,qualification,specialization,hire_date,salary,status)
        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
       sid, 'STF-' + String(i + 1).padStart(4, '0'), fn, ln, female ? 'Female' : 'Male',
-      i === 0 ? teacherEmail : `${fn}.${ln}.${slug}@example.com`.toLowerCase(), '+254 711 00' + (1000 + i),
-      pick(['B.Ed', 'M.Ed', 'Diploma in Education', 'B.Sc + PGDE'], i), SUBJECTS[i][0], days(400 + i * 90), 900 + i * 50, 'active').lastInsertRowid);
+      i === 0 ? teacherEmail : `${fn}.${ln}.${slug}@example.com`.toLowerCase(), '+237 677 10 ' + String(1000 + i).slice(-4),
+      pick(['B.Ed', 'M.Ed', 'Diploma in Education', 'B.Sc + PGDE'], i), SUBJECTS[i][0], days(400 + i * 90), 250000 + i * 25000, 'active').lastInsertRowid);
     teacherIds.push(tid);
     if (i === 0) q.run("INSERT INTO users (school_id,name,email,password_hash,role,teacher_id) VALUES (?,?,?,?,'teacher',?)", sid, `${fn} ${ln}`, teacherEmail, hash('teacher12345'), tid);
   }
@@ -73,7 +75,7 @@ function seedSchool({ name, slug, email, plan, currency, adminEmail, teacherEmai
          VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
         sid, `ADM-${year}-${String(adm).padStart(4, '0')}`, fn, ln, female ? 'Female' : 'Male',
         `${Number(year) - 7 - ci}-${String(1 + Math.floor(rand() * 12)).padStart(2, '0')}-${String(1 + Math.floor(rand() * 28)).padStart(2, '0')}`,
-        cid, `${pick(FIRST_M.concat(FIRST_F), Math.floor(rand() * 28))} ${ln}`, '+254 722 ' + String(100000 + Math.floor(rand() * 899999)),
+        cid, `${pick(FIRST_M.concat(FIRST_F), Math.floor(rand() * 28))} ${ln}`, '+237 6' + pick(['50', '70', '77', '90', '94'], adm) + ' ' + String(100000 + Math.floor(rand() * 899999)),
         pick(['Father', 'Mother', 'Guardian'], adm), 'P.O. Box ' + (100 + adm), days(200)).lastInsertRowid);
       studentIds.push({ id, cid });
       if (adm === 1) q.run("INSERT INTO users (school_id,name,email,password_hash,role,student_id) VALUES (?,?,?,?,'student',?)", sid, `${fn} ${ln}`, studentEmail, hash('student12345'), id);
@@ -108,13 +110,13 @@ function seedSchool({ name, slug, email, plan, currency, adminEmail, teacherEmai
   });
 
   // fees
-  q.run('INSERT INTO fee_items (school_id,name,amount,class_id,term,academic_year) VALUES (?,?,?,?,?,?)', sid, 'Tuition', 350, null, 'Term 1', year);
-  q.run('INSERT INTO fee_items (school_id,name,amount,class_id,term,academic_year) VALUES (?,?,?,?,?,?)', sid, 'Activity fee', 40, null, 'Term 1', year);
-  q.run('INSERT INTO fee_items (school_id,name,amount,class_id,term,academic_year) VALUES (?,?,?,?,?,?)', sid, 'Lab fee', 25, classIds[classIds.length - 1], 'Term 1', year);
+  q.run('INSERT INTO fee_items (school_id,name,amount,class_id,term,academic_year) VALUES (?,?,?,?,?,?)', sid, 'Tuition', 150000, null, 'Term 1', year);
+  q.run('INSERT INTO fee_items (school_id,name,amount,class_id,term,academic_year) VALUES (?,?,?,?,?,?)', sid, 'Activity fee', 15000, null, 'Term 1', year);
+  q.run('INSERT INTO fee_items (school_id,name,amount,class_id,term,academic_year) VALUES (?,?,?,?,?,?)', sid, 'Lab fee', 10000, classIds[classIds.length - 1], 'Term 1', year);
   for (const s of studentIds) {
     const r = rand();
     if (r < 0.15) continue;
-    const amt = r < 0.55 ? 390 : Math.round(100 + rand() * 200);
+    const amt = r < 0.55 ? 165000 : Math.round((40000 + rand() * 80000) / 5000) * 5000; // XAF
     q.run('INSERT INTO payments (school_id,student_id,amount,method,reference,term,academic_year,paid_on,recorded_by) VALUES (?,?,?,?,?,?,?,?,?)',
       sid, s.id, amt, pick(['Cash', 'Bank transfer', 'Mobile money'], s.id), 'TXN' + (10000 + s.id), 'Term 1', year, days(Math.floor(rand() * 40)), adminId);
   }
@@ -130,12 +132,12 @@ function seedSchool({ name, slug, email, plan, currency, adminEmail, teacherEmai
 }
 
 seedSchool({
-  name: 'Greenfield Academy', slug: 'greenfield-academy', email: 'info@greenfield.example.com', plan: 'basic', currency: 'USD',
+  name: 'Greenfield Academy', slug: 'greenfield-academy', email: 'info@greenfield.example.com', plan: 'basic', currency: 'XAF',
   adminEmail: 'admin@greenfield.edu', teacherEmail: 'teacher@greenfield.edu', studentEmail: 'student@greenfield.edu',
   classNames: [['Grade 4', 'A'], ['Grade 4', 'B'], ['Grade 5', 'A'], ['Grade 6', 'A']], perClass: 14,
 });
 seedSchool({
-  name: 'Riverside Primary School', slug: 'riverside-primary', email: 'hello@riverside.example.com', plan: 'free', currency: 'KES',
+  name: 'Riverside Primary School', slug: 'riverside-primary', email: 'hello@riverside.example.com', plan: 'free', currency: 'XAF',
   adminEmail: 'admin@riverside.edu', teacherEmail: 'teacher@riverside.edu', studentEmail: 'student@riverside.edu',
   classNames: [['Class 1', null], ['Class 2', null]], perClass: 10, teachers: 4,
 });

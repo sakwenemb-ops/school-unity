@@ -116,7 +116,7 @@ test('school admin can use every module', async () => {
   const p = client();
   await p.login('pupil@test.edu', 'pupil12345');
   for (const u of ['/app', '/app/me/profile', '/app/me/attendance', '/app/me/results', `/app/me/results/${exam}`, '/app/me/fees', '/app/announcements']) ok(await p.get(u), u);
-  assert.match((await p.get('/app/me/fees')).text, /120\.00/);
+  assert.match((await p.get('/app/me/fees')).text, /FCFA\s120</); // XAF has no decimals
 });
 
 test('tenant isolation: another school cannot see Greenfield data', async () => {
@@ -192,4 +192,27 @@ test('self-service signup creates an isolated school workspace', async () => {
   assert.equal(q.get('SELECT COUNT(*) n FROM students WHERE school_id=?', school.id).n, 0);
   const dup = await client().post('/signup', { school_name: 'Hilltop High', admin_name: 'X', email: 'ada@hilltop.edu', password: 'hilltop123', password_confirm: 'hilltop123', plan: 'free' });
   assert.equal(dup.status, 422, 'duplicate email rejected');
+  // currency defaults to XAF when left blank or invalid
+  await client().post('/signup', { school_name: 'Lycee Bonaberi', admin_name: 'Y', email: 'y@bonaberi.cm', password: 'bonaberi123', password_confirm: 'bonaberi123', plan: 'free', currency: '' });
+  assert.equal(q.get("SELECT currency FROM schools WHERE slug='lycee-bonaberi'").currency, 'XAF');
+  assert.match((await client().get('/signup')).text, /name="currency"[^>]*value="XAF"/);
+});
+
+test('demo mode (no Notch Pay key): paid plans switch without payment, health check answers', async () => {
+  assert.deepEqual(await (await fetch(base + '/healthz')).json(), { ok: true });
+  const c = client();
+  await c.login('admin@riverside.edu', 'admin12345');
+  const billing = await c.get('/app/billing');
+  assert.match(billing.text, /Demo mode/);
+  assert.match(billing.text, /FCFA\s25,000/);
+  await c.post('/app/billing', { plan: 'basic' });
+  const s = q.get("SELECT plan, paid_until FROM schools WHERE slug='riverside-primary'");
+  assert.equal(s.plan, 'basic');
+  assert.ok(s.paid_until > new Date().toISOString().slice(0, 10));
+  await c.post('/app/billing', { plan: 'free' });
+  assert.equal(q.get("SELECT plan FROM schools WHERE slug='riverside-primary'").plan, 'free');
+  // students see that online payment isn't available
+  const st = client();
+  await st.login('student@greenfield.edu', 'student12345');
+  assert.match((await st.get('/app/me/fees')).text, /Online payment isn(&#39;|')t available yet/);
 });

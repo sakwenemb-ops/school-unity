@@ -44,15 +44,18 @@ router.get('/schools/:id', (req, res) => {
     users: q.get('SELECT COUNT(*) n FROM users WHERE school_id=?', school.id).n,
   };
   const activity = q.all('SELECT a.*, u.name user_name FROM activity_log a LEFT JOIN users u ON u.id=a.user_id WHERE a.school_id=? ORDER BY a.id DESC LIMIT 15', school.id);
-  res.page('platform/school', { title: school.name, school, plans, admins, counts, activity });
+  const planPayments = q.all("SELECT op.*, p.name plan_name FROM online_payments op LEFT JOIN plans p ON p.code=op.plan_code WHERE op.school_id=? AND op.kind='plan' ORDER BY op.id DESC LIMIT 10", school.id);
+  res.page('platform/school', { title: school.name, school, plans, admins, counts, activity, planPayments });
 });
 
 router.post('/schools/:id', (req, res) => {
   const { plan, status } = req.body;
-  if (!q.get('SELECT code FROM plans WHERE code=?', plan) || !['active', 'suspended'].includes(status)) {
-    flash(req, 'error', 'Invalid plan or status.');
+  const paidUntil = (req.body.paid_until || '').trim();
+  if (!q.get('SELECT code FROM plans WHERE code=?', plan) || !['active', 'suspended'].includes(status) || (paidUntil && !/^\d{4}-\d{2}-\d{2}$/.test(paidUntil))) {
+    flash(req, 'error', 'Invalid plan, status or date.');
   } else {
-    q.run('UPDATE schools SET plan=?, status=? WHERE id=?', plan, status, req.params.id);
+    // paid_until lets the owner record payments taken outside Notch Pay (cash, bank transfer) or grant free time.
+    q.run('UPDATE schools SET plan=?, status=?, paid_until=? WHERE id=?', plan, status, paidUntil || null, req.params.id);
     flash(req, 'success', 'School subscription updated.');
   }
   res.redirect('/platform/schools/' + req.params.id);

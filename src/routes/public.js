@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const { q, logActivity } = require('../db');
 const { flash } = require('../middleware');
-const { slugify } = require('../helpers');
+const { slugify, currencyCode, DEFAULT_CURRENCY } = require('../helpers');
 
 const router = express.Router();
 
@@ -33,7 +33,7 @@ router.get('/', (req, res) => {
 router.get('/signup', (req, res) => {
   if (req.user) return res.redirect(homeFor(req.user));
   const plans = q.all('SELECT * FROM plans ORDER BY price_monthly');
-  res.page('public/signup', { title: 'Register your school', plans, form: { plan: req.query.plan || 'free' }, errors: [], layout: 'layouts/public' });
+  res.page('public/signup', { title: 'Register your school', plans, form: { plan: req.query.plan || 'free', currency: DEFAULT_CURRENCY }, errors: [], layout: 'layouts/public' });
 });
 
 router.post('/signup', (req, res) => {
@@ -61,7 +61,7 @@ router.post('/signup', (req, res) => {
     const school = q.run(
       `INSERT INTO schools (name,slug,email,phone,country,currency,plan,academic_year,current_term,trial_ends_at)
        VALUES (?,?,?,?,?,?,?,?,?,?)`,
-      f.school_name.trim(), slug, f.email.trim(), f.phone, f.country, (f.currency || 'USD').toUpperCase().slice(0, 3),
+      f.school_name.trim(), slug, f.email.trim(), f.phone, f.country, currencyCode(f.currency),
       f.plan, year, 'Term 1', f.plan === 'free' ? null : trialEnds
     );
     const sid = Number(school.lastInsertRowid);
