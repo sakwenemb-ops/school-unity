@@ -55,8 +55,10 @@ Notch Pay's API for the payment's real status before crediting anything.
 2. Open the site in a private window and **Register your school**. Currency defaults to XAF.
 3. As that school's admin: add a class, a student with a portal login (**Students → Add → Create login**),
    and a fee item (**Fees & payments**).
-4. Sign in as the student → **Fees → Pay now**. Complete the sandbox payment on Notch Pay. You return to
-   School Unity, the payment appears on the student's statement, and the admin sees it under **Payment history**.
+4. Sign in as the student → **Fees → Pay now**. Complete the sandbox payment on Notch Pay with a test number:
+   MTN `+237670000000` (succeeds), Orange `+237690000000` (succeeds), `+237670000002` (fails),
+   `+237670000004` (cancelled by the payer). You return to School Unity, the payment appears on the student's
+   statement, and the admin sees it under **Payment history**.
 5. As the school admin: **Plan & billing → Upgrade to Growth** and pay. The plan switches and shows
    "paid until" 30 days ahead.
 
