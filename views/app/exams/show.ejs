@@ -1,0 +1,19 @@
+<div class="page-head"><div><a class="muted" href="/app/exams">← Exams</a><h1><%= exam.name %></h1><p><%= exam.term %> <%= exam.academic_year %> · marked out of <%= exam.max_score %></p></div>
+  <a class="btn btn-primary" href="/app/exams/<%= exam.id %>/results"><svg><use href="#i-chart"/></svg>View results</a></div>
+<div class="grid g-2">
+  <% classes.forEach(function (c) { %>
+    <div class="card">
+      <div class="card-head"><h2><%= c.name %> <%= c.section || '' %></h2><span class="muted"><%= c.student_count %> students</span></div>
+      <ul class="list">
+        <% c.subjects.forEach(function (s) { const pct = c.student_count ? Math.round(100 * s.entered / c.student_count) : 0; %>
+          <li style="display:flex;align-items:center;gap:12px">
+            <div style="flex:1"><strong><%= s.name %></strong><div class="progress" style="margin-top:6px"><span style="width:<%= Math.min(100, pct) %>%"></span></div><small><%= s.entered %>/<%= c.student_count %> entered</small></div>
+            <a class="btn btn-sm" href="/app/exams/<%= exam.id %>/marks?class_id=<%= c.id %>&subject_id=<%= s.subject_id %>">Enter marks</a>
+          </li>
+        <% }) %>
+        <% if (!c.subjects.length) { %><li class="muted">No subjects you can grade in this class.</li><% } %>
+      </ul>
+    </div>
+  <% }) %>
+  <% if (!classes.length) { %><div class="card empty">No classes available.</div><% } %>
+</div>

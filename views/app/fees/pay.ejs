@@ -1,0 +1,13 @@
+<div class="page-head"><div><a class="muted" href="/app/fees">← Fees</a><h1>Record a payment</h1><p>Payments are credited to <%= school.current_term %> <%= school.academic_year %>.</p></div></div>
+<form class="card card-body" method="post" action="/app/fees/payments" style="max-width:640px"><input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="field"><label for="student_id">Student *</label><select id="student_id" name="student_id" required><option value="">Select student…</option>
+    <% students.forEach(function (s) { %><option value="<%= s.id %>" <%= String(s.id) === String(studentId) ? 'selected' : '' %>><%= s.first_name %> <%= s.last_name %> — <%= s.admission_no %><%= s.class_name ? ' (' + s.class_name + ' ' + (s.section || '') + ')' : '' %></option><% }) %></select></div>
+  <div class="form-grid">
+    <div class="field"><label for="amount">Amount (<%= school.currency %>) *</label><input id="amount" type="number" step="0.01" min="0.01" name="amount" required></div>
+    <div class="field"><label for="paid_on">Date *</label><input id="paid_on" type="date" name="paid_on" value="<%= date %>" required></div>
+    <div class="field"><label for="method">Method</label><select id="method" name="method"><% methods.forEach(function (m) { %><option><%= m %></option><% }) %></select></div>
+    <div class="field"><label for="reference">Reference / transaction ID</label><input id="reference" type="text" name="reference"></div>
+    <div class="field full"><label for="note">Note</label><input id="note" type="text" name="note"></div>
+  </div>
+  <div class="actions"><button class="btn btn-primary">Save &amp; print receipt</button><a class="btn" href="/app/fees">Cancel</a></div>
+</form>

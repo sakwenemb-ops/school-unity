@@ -1,0 +1,26 @@
+<div class="page-head"><div><a class="muted" href="/app/students">← Students</a><h1>Import students</h1><p>Paste CSV data exported from a spreadsheet.</p></div></div>
+<% if (result) { %>
+  <% if (result.added) { %><div class="alert alert-success"><%= result.added %> students imported successfully.</div><% } %>
+  <% if (result.errors.length) { %><div class="alert alert-error"><strong><%= result.errors.length %> rows skipped</strong><ul><% result.errors.slice(0, 30).forEach(function (e) { %><li><%= e %></li><% }) %></ul></div><% } %>
+<% } %>
+<div class="grid g-main">
+  <form class="card card-body" method="post" action="/app/students/import">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <div class="field"><label for="csv">CSV data</label>
+      <textarea id="csv" name="csv" style="min-height:260px;font-family:ui-monospace,monospace;font-size:13px" placeholder="first_name,last_name,gender,dob,class,guardian_name,guardian_phone
+Amina,Mohamed,F,2015-04-12,Grade 4 A,Hassan Mohamed,+254700111222"></textarea></div>
+    <div class="field"><label for="class_id">Default class (for rows without a class column)</label>
+      <select id="class_id" name="class_id"><option value="">— Unassigned —</option><% classes.forEach(function (c) { %><option value="<%= c.id %>"><%= c.name %> <%= c.section || '' %></option><% }) %></select></div>
+    <button class="btn btn-primary"><svg><use href="#i-upload"/></svg>Import students</button>
+  </form>
+  <div class="card card-body">
+    <h3>Supported columns</h3>
+    <p class="muted">The first row must be a header. <code>first_name</code> and <code>last_name</code> are required.</p>
+    <ul style="padding-left:18px;margin:0;line-height:1.9">
+      <li><code>admission_no</code> — auto-generated if empty</li><li><code>first_name</code>, <code>last_name</code></li>
+      <li><code>gender</code> — M/F or Male/Female</li><li><code>dob</code> — YYYY-MM-DD</li>
+      <li><code>class</code> — e.g. "Grade 4 A" or "Grade 4"</li><li><code>guardian_name</code>, <code>guardian_phone</code>, <code>guardian_email</code></li><li><code>address</code></li>
+    </ul>
+    <% if (school.student_limit) { %><p class="muted" style="margin-top:12px">Your <%= school.plan_name %> plan allows <%= school.student_limit %> active students.</p><% } %>
+  </div>
+</div>

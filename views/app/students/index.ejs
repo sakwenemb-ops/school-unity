@@ -1,0 +1,47 @@
+<% const qs = (extra) => { const p = new URLSearchParams(Object.assign({}, query, extra)); return '?' + p.toString(); }; %>
+<div class="page-head">
+  <div><h1>Students</h1><p><%= total %> <%= query.status || 'active' %> students</p></div>
+  <div class="actions">
+    <a class="btn" href="/app/students/export.csv<%= qs({}) %>"><svg><use href="#i-download"/></svg>Export CSV</a>
+    <% if (user.role === 'admin') { %>
+      <a class="btn" href="/app/students/import"><svg><use href="#i-upload"/></svg>Import</a>
+      <a class="btn btn-primary" href="/app/students/new"><svg><use href="#i-plus"/></svg>Admit student</a>
+    <% } %>
+  </div>
+</div>
+<div class="card">
+  <div class="card-head">
+    <form class="filters" method="get">
+      <input type="search" name="q" placeholder="Search name, admission no, guardian…" value="<%= query.q || '' %>">
+      <select name="class_id" data-autosubmit><option value="">All classes</option>
+        <% classes.forEach(function (c) { %><option value="<%= c.id %>" <%= String(c.id) === query.class_id ? 'selected' : '' %>><%= c.name %> <%= c.section || '' %></option><% }) %></select>
+      <select name="gender" data-autosubmit><option value="">Any gender</option><option <%= query.gender === 'Male' ? 'selected' : '' %>>Male</option><option <%= query.gender === 'Female' ? 'selected' : '' %>>Female</option></select>
+      <select name="status" data-autosubmit>
+        <% ['active','graduated','transferred','suspended'].forEach(function (s) { %><option value="<%= s %>" <%= (query.status || 'active') === s ? 'selected' : '' %>><%= s[0].toUpperCase() + s.slice(1) %></option><% }) %></select>
+      <button class="btn">Filter</button>
+    </form>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Student</th><th>Admission no</th><th>Class</th><th>Gender</th><th>Guardian</th><th>Status</th></tr></thead>
+    <tbody>
+    <% students.forEach(function (s) { %>
+      <tr>
+        <td><a class="person" href="/app/students/<%= s.id %>"><span class="avatar"><%= initials(s.first_name + ' ' + s.last_name) %></span><strong><%= s.first_name %> <%= s.last_name %></strong></a></td>
+        <td><code><%= s.admission_no %></code></td>
+        <td><%= s.class_name ? s.class_name + ' ' + (s.section || '') : '—' %></td>
+        <td><%= s.gender || '—' %></td>
+        <td><%= s.guardian_name || '—' %><% if (s.guardian_phone) { %><br><small><%= s.guardian_phone %></small><% } %></td>
+        <td><span class="badge b-<%= s.status %>"><%= s.status %></span></td>
+      </tr>
+    <% }) %>
+    <% if (!students.length) { %><tr><td colspan="6"><div class="empty"><svg><use href="#i-students"/></svg>No students found.<% if (user.role === 'admin') { %> <a href="/app/students/new">Admit your first student</a>.<% } %></div></td></tr><% } %>
+    </tbody>
+  </table></div>
+  <% if (pages > 1) { %>
+    <div class="pager">
+      <% if (page > 1) { %><a class="btn btn-sm" href="<%= qs({ page: page - 1 }) %>">← Prev</a><% } %>
+      <span class="muted">Page <%= page %> of <%= pages %></span>
+      <% if (page < pages) { %><a class="btn btn-sm" href="<%= qs({ page: page + 1 }) %>">Next →</a><% } %>
+    </div>
+  <% } %>
+</div>

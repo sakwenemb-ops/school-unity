@@ -1,0 +1,26 @@
+<div class="page-head"><div><h1>Announcements</h1><p>School-wide notices for staff and students.</p></div></div>
+<div class="grid <%= user.role === 'admin' ? 'g-main' : '' %>">
+  <div class="stack">
+    <% list.forEach(function (a) { %>
+      <article class="card card-body">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+          <div><h2 style="margin-bottom:2px"><%= a.title %></h2><small><%= a.author || 'School' %> · <%= fmtDate(a.created_at) %> · <%= a.audience === 'all' ? 'Everyone' : a.audience[0].toUpperCase() + a.audience.slice(1) %></small></div>
+          <div class="actions"><% if (a.pinned) { %><span class="badge b-brand">Pinned</span><% } %>
+            <% if (user.role === 'admin') { %><form class="inline" method="post" action="/app/announcements/<%= a.id %>/delete" data-confirm="Delete this announcement?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link-btn danger">Delete</button></form><% } %></div>
+        </div>
+        <p style="white-space:pre-line;margin:10px 0 0"><%= a.body %></p>
+      </article>
+    <% }) %>
+    <% if (!list.length) { %><div class="card empty"><svg><use href="#i-megaphone"/></svg>No announcements yet.</div><% } %>
+  </div>
+  <% if (user.role === 'admin') { %>
+  <form class="card card-body" method="post" action="/app/announcements" style="align-self:start"><input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>New announcement</h2>
+    <div class="field"><label for="title">Title</label><input id="title" type="text" name="title" required></div>
+    <div class="field"><label for="body">Message</label><textarea id="body" name="body" required></textarea></div>
+    <div class="field"><label for="audience">Audience</label><select id="audience" name="audience"><option value="all">Everyone</option><option value="teachers">Teachers only</option><option value="students">Students only</option></select></div>
+    <label class="check field"><input type="checkbox" name="pinned" value="1"> Pin to top</label>
+    <button class="btn btn-primary btn-block">Publish</button>
+  </form>
+  <% } %>
+</div>

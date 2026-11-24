@@ -1,0 +1,16 @@
+<div class="page-head"><div><a class="muted" href="/app/exams/<%= exam.id %>">← <%= exam.name %></a><h1><%= subject.name %> · <%= cls.name %> <%= cls.section || '' %></h1><p>Enter scores out of <%= exam.max_score %>. Leave blank to clear a mark.</p></div></div>
+<form class="card" method="post" action="/app/exams/<%= exam.id %>/marks">
+  <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="class_id" value="<%= cls.id %>"><input type="hidden" name="subject_id" value="<%= subject.id %>">
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Student</th><th>Score</th><th>Grade</th><th>Remark</th></tr></thead>
+    <tbody>
+      <% students.forEach(function (s, i) { %>
+        <tr><td class="muted"><%= i + 1 %></td><td><strong><%= s.first_name %> <%= s.last_name %></strong><br><small><%= s.admission_no %></small></td>
+          <td><input class="score" type="number" step="0.5" min="0" max="<%= exam.max_score %>" name="score_<%= s.id %>" value="<%= s.score ?? '' %>" data-sid="<%= s.id %>" data-max="<%= exam.max_score %>" aria-label="Score for <%= s.first_name %>"></td>
+          <td><span id="g_<%= s.id %>" class="badge">-</span></td>
+          <td><input type="text" name="remark_<%= s.id %>" value="<%= s.remark || '' %>" placeholder="Optional" aria-label="Remark"></td></tr>
+      <% }) %>
+      <% if (!students.length) { %><tr><td colspan="5" class="empty">No active students in this class.</td></tr><% } %>
+    </tbody></table></div>
+  <div class="card-body"><button class="btn btn-primary">Save marks</button></div>
+</form>

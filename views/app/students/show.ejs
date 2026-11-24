@@ -1,0 +1,76 @@
+<div class="page-head">
+  <div class="person"><span class="avatar lg"><%= initials(s.first_name + ' ' + s.last_name) %></span>
+    <div><a class="muted" href="/app/students">← Students</a><h1 style="margin:0"><%= s.first_name %> <%= s.last_name %></h1>
+      <p><code><%= s.admission_no %></code> · <%= s.class_name ? s.class_name + ' ' + (s.section || '') : 'No class' %> · <span class="badge b-<%= s.status %>"><%= s.status %></span></p></div></div>
+  <% if (user.role === 'admin') { %>
+  <div class="actions">
+    <a class="btn" href="/app/fees/pay?student_id=<%= s.id %>"><svg><use href="#i-cash"/></svg>Record payment</a>
+    <a class="btn btn-primary" href="/app/students/<%= s.id %>/edit">Edit</a>
+    <form class="inline" method="post" action="/app/students/<%= s.id %>/delete" data-confirm="Delete this student and all their records? This cannot be undone.">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-danger">Delete</button></form>
+  </div>
+  <% } %>
+</div>
+<div class="grid g-4" style="margin-bottom:16px">
+  <div class="card stat"><div class="ico t-teal"><svg><use href="#i-check"/></svg></div><div><div class="num"><%= att.total ? Math.round(100 * (att.present + att.late) / att.total) + '%' : '—' %></div><div class="lbl">Attendance (<%= att.total %> days)</div></div></div>
+  <div class="card stat"><div class="ico t-rose"><svg><use href="#i-calendar"/></svg></div><div><div class="num"><%= att.absent || 0 %></div><div class="lbl">Days absent</div></div></div>
+  <div class="card stat"><div class="ico t-indigo"><svg><use href="#i-award"/></svg></div><div><div class="num"><%= exams.length ? exams[0].avg.toFixed(1) : '—' %></div><div class="lbl">Latest exam average</div></div></div>
+  <div class="card stat"><div class="ico t-amber"><svg><use href="#i-cash"/></svg></div><div><div class="num"><%= money(Math.max(0, fees.balance), school.currency) %></div><div class="lbl">Balance · <%= school.current_term %></div></div></div>
+</div>
+<div class="grid g-2">
+  <div class="stack">
+    <div class="card"><div class="card-head"><h2>Profile</h2></div><div class="card-body">
+      <dl class="kv">
+        <dt>Gender</dt><dd><%= s.gender || '—' %></dd>
+        <dt>Date of birth</dt><dd><%= s.dob ? fmtDate(s.dob) : '—' %></dd>
+        <dt>Admitted</dt><dd><%= s.admission_date ? fmtDate(s.admission_date) : '—' %></dd>
+        <dt>Address</dt><dd><%= s.address || '—' %></dd>
+        <dt>Medical notes</dt><dd><%= s.medical_notes || '—' %></dd>
+      </dl></div></div>
+    <div class="card"><div class="card-head"><h2>Parent / guardian</h2></div><div class="card-body">
+      <dl class="kv">
+        <dt>Name</dt><dd><%= s.guardian_name || '—' %> <% if (s.guardian_relation) { %><small>(<%= s.guardian_relation %>)</small><% } %></dd>
+        <dt>Phone</dt><dd><%= s.guardian_phone || '—' %></dd>
+        <dt>Email</dt><dd><%= s.guardian_email || '—' %></dd>
+      </dl></div></div>
+    <% if (user.role === 'admin') { %>
+    <div class="card"><div class="card-head"><h2>Student portal</h2><% if (login) { %><span class="badge <%= login.active ? 'b-ok' : 'b-bad' %>"><%= login.active ? 'Enabled' : 'Disabled' %></span><% } %></div>
+      <form class="card-body" method="post" action="/app/students/<%= s.id %>/account">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <% if (login) { %>
+          <p>Login: <strong><%= login.email %></strong> · last sign-in <%= login.last_login ? fmtDate(login.last_login) : 'never' %></p>
+          <div class="filters"><input type="password" name="password" placeholder="New password" minlength="8" required><button class="btn">Reset password</button></div>
+        <% } else { %>
+          <p class="muted">No portal login yet.</p>
+          <div class="filters"><input type="email" name="email" placeholder="Email" required><input type="password" name="password" placeholder="Password (8+ chars)" minlength="8" required><button class="btn">Create login</button></div>
+        <% } %>
+      </form></div>
+    <% } %>
+  </div>
+  <div class="stack">
+    <div class="card"><div class="card-head"><h2>Exam results</h2></div>
+      <div class="table-wrap"><table><thead><tr><th>Exam</th><th class="num">Subjects</th><th class="num">Average</th><th>Grade</th><th></th></tr></thead><tbody>
+        <% exams.forEach(function (e) { const g = gradeFor(100 * e.avg / e.max_score); %>
+          <tr><td><%= e.name %><br><small><%= e.term %> <%= e.academic_year %></small></td><td class="num"><%= e.subjects %></td><td class="num"><%= e.avg.toFixed(1) %></td><td><span class="badge b-<%= g %>"><%= g %></span></td>
+            <td><a class="btn btn-sm" href="/app/students/<%= s.id %>/report/<%= e.id %>">Report card</a></td></tr>
+        <% }) %>
+        <% if (!exams.length) { %><tr><td colspan="5" class="empty">No results recorded yet.</td></tr><% } %>
+      </tbody></table></div></div>
+    <div class="card"><div class="card-head"><h2>Recent attendance</h2></div>
+      <div class="card-body" style="display:flex;gap:6px;flex-wrap:wrap">
+        <% recentAtt.forEach(function (a) { %><span class="badge b-<%= a.status %>" title="<%= a.date %>"><%= fmtDate(a.date).slice(0, 6) %> · <%= a.status %></span><% }) %>
+        <% if (!recentAtt.length) { %><span class="muted">No attendance recorded.</span><% } %>
+      </div></div>
+    <% if (user.role === 'admin') { %>
+    <div class="card"><div class="card-head"><h2>Fees · <%= school.current_term %> <%= school.academic_year %></h2></div>
+      <div class="card-body">
+        <dl class="kv"><dt>Expected</dt><dd><%= money(fees.expected, school.currency) %></dd><dt>Paid</dt><dd><%= money(fees.paid, school.currency) %></dd>
+          <dt>Balance</dt><dd style="color:<%= fees.balance > 0 ? 'var(--bad)' : 'var(--ok)' %>"><%= money(fees.balance, school.currency) %></dd></dl>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Method</th><th class="num">Amount</th><th></th></tr></thead><tbody>
+        <% payments.forEach(function (p) { %><tr><td><%= fmtDate(p.paid_on) %></td><td><%= p.method %></td><td class="num"><%= money(p.amount, school.currency) %></td><td><a href="/app/fees/payments/<%= p.id %>/receipt">Receipt</a></td></tr><% }) %>
+        <% if (!payments.length) { %><tr><td colspan="4" class="empty">No payments yet.</td></tr><% } %>
+      </tbody></table></div></div>
+    <% } %>
+  </div>
+</div>

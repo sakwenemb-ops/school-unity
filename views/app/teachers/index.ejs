@@ -1,0 +1,24 @@
+<div class="page-head">
+  <div><h1>Teachers</h1><p><%= teachers.length %> staff<% if (school.teacher_limit) { %> · plan limit <%= school.teacher_limit %><% } %></p></div>
+  <div class="actions"><a class="btn" href="/app/teachers/export.csv"><svg><use href="#i-download"/></svg>Export CSV</a>
+    <a class="btn btn-primary" href="/app/teachers/new"><svg><use href="#i-plus"/></svg>Add teacher</a></div>
+</div>
+<div class="card">
+  <div class="card-head"><form class="filters" method="get">
+    <input type="search" name="q" placeholder="Search name, staff no, email" value="<%= query.q || '' %>">
+    <select name="status" data-autosubmit><option value="">Any status</option>
+      <% [['active','Active'],['on_leave','On leave'],['inactive','Inactive']].forEach(function (s) { %><option value="<%= s[0] %>" <%= query.status === s[0] ? 'selected' : '' %>><%= s[1] %></option><% }) %></select>
+    <button class="btn">Filter</button></form></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Teacher</th><th>Staff no</th><th>Contact</th><th>Specialization</th><th>Class teacher of</th><th class="num">Subjects</th><th>Login</th><th>Status</th></tr></thead>
+    <tbody>
+      <% teachers.forEach(function (t) { %>
+        <tr><td><a class="person" href="/app/teachers/<%= t.id %>"><span class="avatar"><%= initials(t.first_name + ' ' + t.last_name) %></span><strong><%= t.first_name %> <%= t.last_name %></strong></a></td>
+          <td><code><%= t.staff_no %></code></td><td><%= t.email || '—' %><br><small><%= t.phone || '' %></small></td>
+          <td><%= t.specialization || '—' %></td><td><%= t.class_teacher_of || '—' %></td><td class="num"><%= t.subject_count %></td>
+          <td><%- t.user_id ? '<span class="badge b-ok">Yes</span>' : '<span class="badge">No</span>' %></td>
+          <td><span class="badge b-<%= t.status %>"><%= t.status.replace('_', ' ') %></span></td></tr>
+      <% }) %>
+      <% if (!teachers.length) { %><tr><td colspan="8"><div class="empty"><svg><use href="#i-teachers"/></svg>No teachers yet. <a href="/app/teachers/new">Add your first teacher</a>.</div></td></tr><% } %>
+    </tbody></table></div>
+</div>

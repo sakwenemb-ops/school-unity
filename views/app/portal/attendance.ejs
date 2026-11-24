@@ -1,0 +1,11 @@
+<div class="page-head"><div><h1>My attendance</h1></div></div>
+<div class="grid g-4" style="margin-bottom:16px">
+  <div class="card stat"><div><div class="num"><%= summary.total ? Math.round(100 * (summary.present + summary.late) / summary.total) + '%' : '—' %></div><div class="lbl">Attendance rate</div></div></div>
+  <div class="card stat"><div><div class="num"><%= summary.present || 0 %></div><div class="lbl">Present</div></div></div>
+  <div class="card stat"><div><div class="num"><%= summary.absent || 0 %></div><div class="lbl">Absent</div></div></div>
+  <div class="card stat"><div><div class="num"><%= summary.late || 0 %></div><div class="lbl">Late</div></div></div>
+</div>
+<div class="card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody>
+  <% records.forEach(function (r) { %><tr><td><%= fmtDate(r.date) %></td><td><span class="badge b-<%= r.status %>"><%= r.status %></span></td></tr><% }) %>
+  <% if (!records.length) { %><tr><td colspan="2" class="empty">No attendance recorded yet.</td></tr><% } %>
+</tbody></table></div></div>

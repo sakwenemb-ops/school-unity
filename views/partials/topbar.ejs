@@ -1,0 +1,11 @@
+<header class="topbar">
+  <button class="menu-btn" data-toggle-nav aria-label="Open menu"><svg width="22" height="22"><use href="#i-menu"/></svg></button>
+  <div class="spacer"></div>
+  <div class="user-pill">
+    <div class="who" style="text-align:right">
+      <div style="font-weight:600"><%= user.name %></div>
+      <small style="text-transform:capitalize"><%= user.role === 'superadmin' ? 'Platform owner' : user.role %></small>
+    </div>
+    <a href="<%= user.role === 'superadmin' ? '/platform' : '/app/account' %>" class="avatar" title="My account"><%= initials(user.name) %></a>
+  </div>
+</header>

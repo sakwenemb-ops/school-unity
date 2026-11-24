@@ -1,0 +1,35 @@
+<div class="page-head">
+  <div class="person"><span class="avatar lg"><%= initials(t.first_name + ' ' + t.last_name) %></span>
+    <div><a class="muted" href="/app/teachers">← Teachers</a><h1 style="margin:0"><%= t.first_name %> <%= t.last_name %></h1>
+      <p><code><%= t.staff_no %></code> · <%= t.specialization || 'Teacher' %> · <span class="badge b-<%= t.status %>"><%= t.status.replace('_', ' ') %></span></p></div></div>
+  <div class="actions"><a class="btn btn-primary" href="/app/teachers/<%= t.id %>/edit">Edit</a>
+    <form class="inline" method="post" action="/app/teachers/<%= t.id %>/delete" data-confirm="Remove this teacher? Their login will also be removed.">
+      <input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-danger">Remove</button></form></div>
+</div>
+<div class="grid g-2">
+  <div class="stack">
+    <div class="card"><div class="card-head"><h2>Details</h2></div><div class="card-body"><dl class="kv">
+      <dt>Gender</dt><dd><%= t.gender || '—' %></dd><dt>Email</dt><dd><%= t.email || '—' %></dd><dt>Phone</dt><dd><%= t.phone || '—' %></dd>
+      <dt>Address</dt><dd><%= t.address || '—' %></dd><dt>Qualification</dt><dd><%= t.qualification || '—' %></dd>
+      <dt>Hire date</dt><dd><%= t.hire_date ? fmtDate(t.hire_date) : '—' %></dd><dt>Salary</dt><dd><%= t.salary != null ? money(t.salary, school.currency) : '—' %></dd>
+    </dl></div></div>
+    <div class="card"><div class="card-head"><h2>Login access</h2><% if (login) { %><span class="badge <%= login.active ? 'b-ok' : 'b-bad' %>"><%= login.active ? 'Enabled' : 'Disabled' %></span><% } %></div>
+      <form class="card-body" method="post" action="/app/teachers/<%= t.id %>/account"><input type="hidden" name="_csrf" value="<%= csrf %>">
+        <% if (login) { %>
+          <p>Signs in as <strong><%= login.email %></strong> · last sign-in <%= login.last_login ? fmtDate(login.last_login) : 'never' %></p>
+          <div class="filters"><input type="password" name="password" placeholder="New password" minlength="8" required><button class="btn">Reset password</button></div>
+        <% } else { %>
+          <p class="muted">This teacher can't sign in yet.</p>
+          <div class="filters"><input type="email" name="email" placeholder="Email" value="<%= t.email || '' %>" required><input type="password" name="password" placeholder="Password (8+ chars)" minlength="8" required><button class="btn">Create login</button></div>
+        <% } %>
+      </form></div>
+  </div>
+  <div class="stack">
+    <div class="card"><div class="card-head"><h2>Class teacher of</h2></div><ul class="list">
+      <% leads.forEach(function (c) { %><li><a href="/app/classes/<%= c.id %>"><%= c.name %> <%= c.section || '' %></a></li><% }) %>
+      <% if (!leads.length) { %><li class="muted">Not a class teacher.</li><% } %></ul></div>
+    <div class="card"><div class="card-head"><h2>Subjects taught</h2></div><ul class="list">
+      <% subjects.forEach(function (s) { %><li><strong><%= s.subject %></strong> · <a href="/app/classes/<%= s.class_id %>"><%= s.class_name %> <%= s.section || '' %></a></li><% }) %>
+      <% if (!subjects.length) { %><li class="muted">No subjects assigned. Assign from a class page.</li><% } %></ul></div>
+  </div>
+</div>

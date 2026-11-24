@@ -1,0 +1,17 @@
+<div class="page-head"><div><a class="muted" href="/app/fees">← Fees</a><h1>Payment history</h1><p><%= payments.length %> payments · total <%= money(total, school.currency) %></p></div>
+  <div class="actions"><a class="btn" href="/app/fees/payments?format=csv&from=<%= from %>&to=<%= to %>"><svg><use href="#i-download"/></svg>Export CSV</a><a class="btn btn-primary" href="/app/fees/pay"><svg><use href="#i-plus"/></svg>Record payment</a></div></div>
+<div class="card">
+  <div class="card-head"><form class="filters" method="get">
+    <label class="check" style="margin:0">From <input type="date" name="from" value="<%= from %>"></label><label class="check" style="margin:0">To <input type="date" name="to" value="<%= to %>"></label><button class="btn">Filter</button></form></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Receipt</th><th>Date</th><th>Student</th><th>Method</th><th>Reference</th><th>Term</th><th class="num">Amount</th><th></th></tr></thead>
+    <tbody>
+      <% payments.forEach(function (p) { %>
+        <tr><td><a href="/app/fees/payments/<%= p.id %>/receipt"><code>RCT-<%= String(p.id).padStart(6, '0') %></code></a></td><td><%= fmtDate(p.paid_on) %></td>
+          <td><a href="/app/students/<%= p.student_id %>"><%= p.first_name %> <%= p.last_name %></a><br><small><%= p.admission_no %></small></td>
+          <td><%= p.method %></td><td><%= p.reference || '—' %></td><td><%= p.term %> <%= p.academic_year %></td><td class="num"><b><%= money(p.amount, school.currency) %></b></td>
+          <td><form class="inline" method="post" action="/app/fees/payments/<%= p.id %>/delete" data-confirm="Void this payment? This cannot be undone."><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link-btn danger">Void</button></form></td></tr>
+      <% }) %>
+      <% if (!payments.length) { %><tr><td colspan="8" class="empty">No payments recorded.</td></tr><% } %>
+    </tbody></table></div>
+</div>

@@ -1,0 +1,23 @@
+{
+  "name": "school-unity",
+  "version": "1.0.0",
+  "description": "School Unity \u2014 multi-tenant school management SaaS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --no-warnings server.js",
+    "dev": "node --no-warnings --watch server.js",
+    "seed": "node --no-warnings seed.js",
+    "test": "node --no-warnings --test"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "ejs": "^7.0.2",
+    "express": "^5.3.0",
+    "express-session": "^1.19.0"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

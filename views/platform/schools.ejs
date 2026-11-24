@@ -1,0 +1,21 @@
+<div class="page-head"><div><h1>Schools</h1><p><%= schools.length %> tenant schools</p></div></div>
+<div class="card">
+  <div class="card-head">
+    <form class="filters" method="get"><input type="search" name="q" placeholder="Search name or email" value="<%= query.q || '' %>"><button class="btn">Search</button></form>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>School</th><th>Plan</th><th class="num">Students</th><th class="num">Teachers</th><th>Status</th><th>Joined</th><th></th></tr></thead>
+    <tbody>
+    <% schools.forEach(function (s) { %>
+      <tr>
+        <td><div class="person"><span class="avatar"><%= initials(s.name) %></span><div><strong><%= s.name %></strong><br><small><%= s.slug %> · <%= s.country || '—' %></small></div></div></td>
+        <td><%= s.plan_name %><br><small><%= money(s.price_monthly) %>/mo</small></td>
+        <td class="num"><%= s.students %></td><td class="num"><%= s.teachers %></td>
+        <td><span class="badge b-<%= s.status %>"><%= s.status %></span></td>
+        <td><%= fmtDate(s.created_at) %></td>
+        <td><a class="btn btn-sm" href="/platform/schools/<%= s.id %>">Manage</a></td>
+      </tr>
+    <% }) %>
+    <% if (!schools.length) { %><tr><td colspan="7" class="empty">No schools found.</td></tr><% } %>
+    </tbody></table></div>
+</div>

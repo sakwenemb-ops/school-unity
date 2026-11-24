@@ -1,0 +1,66 @@
+<div class="page-head">
+  <div><a class="muted" href="/app/classes">← Classes</a><h1><%= c.name %> <%= c.section || '' %></h1><p>Class teacher: <%= c.teacher_name || 'not assigned' %> · <%= students.length %> students<%= c.room ? ' · ' + c.room : '' %></p></div>
+  <div class="actions">
+    <a class="btn" href="/app/attendance?class_id=<%= c.id %>"><svg><use href="#i-check"/></svg>Attendance</a>
+    <a class="btn" href="/app/students/export.csv?class_id=<%= c.id %>"><svg><use href="#i-download"/></svg>Class list</a>
+    <% if (user.role === 'admin') { %><a class="btn btn-primary" href="/app/students/new?class_id=<%= c.id %>"><svg><use href="#i-plus"/></svg>Add student</a><% } %>
+  </div>
+</div>
+<div class="grid g-main">
+  <div class="stack">
+    <div class="card"><div class="card-head"><h2>Students</h2></div>
+      <div class="table-wrap"><table><thead><tr><th>#</th><th>Student</th><th>Admission no</th><th>Gender</th><th>Guardian phone</th></tr></thead><tbody>
+        <% students.forEach(function (s, i) { %><tr><td class="muted"><%= i + 1 %></td><td><a href="/app/students/<%= s.id %>"><%= s.first_name %> <%= s.last_name %></a></td><td><code><%= s.admission_no %></code></td><td><%= s.gender || '—' %></td><td><%= s.guardian_phone || '—' %></td></tr><% }) %>
+        <% if (!students.length) { %><tr><td colspan="5" class="empty">No students in this class.</td></tr><% } %>
+      </tbody></table></div></div>
+  </div>
+  <div class="stack">
+    <div class="card"><div class="card-head"><h2>Subjects</h2></div>
+      <ul class="list">
+        <% subjects.forEach(function (s) { %>
+          <li>
+            <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><strong><%= s.name %></strong>
+              <% if (user.role === 'admin') { %><form class="inline" method="post" action="/app/classes/<%= c.id %>/subjects/<%= s.id %>/delete" data-confirm="Remove <%= s.name %> from this class?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link-btn danger">Remove</button></form><% } %></div>
+            <% if (user.role === 'admin') { %>
+              <form method="post" action="/app/classes/<%= c.id %>/subjects/<%= s.id %>" style="margin-top:6px"><input type="hidden" name="_csrf" value="<%= csrf %>">
+                <select name="teacher_id" data-autosubmit aria-label="Subject teacher"><option value="">— No teacher —</option><% teachers.forEach(function (t) { %><option value="<%= t.id %>" <%= t.id === s.teacher_id ? 'selected' : '' %>><%= t.name %></option><% }) %></select></form>
+            <% } else { %><small><%= s.teacher_name || 'No teacher' %></small><% } %>
+          </li>
+        <% }) %>
+        <% if (!subjects.length) { %><li class="muted">No subjects assigned.</li><% } %>
+      </ul>
+      <% if (user.role === 'admin' && allSubjects.length) { %>
+      <form class="card-body" method="post" action="/app/classes/<%= c.id %>/subjects" style="border-top:1px solid var(--line)"><input type="hidden" name="_csrf" value="<%= csrf %>">
+        <div class="field"><label>Add subject</label><select name="subject_id" required><% allSubjects.forEach(function (s) { %><option value="<%= s.id %>"><%= s.name %></option><% }) %></select></div>
+        <div class="field"><select name="teacher_id" aria-label="Teacher"><option value="">— Teacher —</option><% teachers.forEach(function (t) { %><option value="<%= t.id %>"><%= t.name %></option><% }) %></select></div>
+        <button class="btn btn-block">Assign subject</button>
+      </form>
+      <% } else if (user.role === 'admin' && !subjects.length) { %><div class="card-body"><a href="/app/subjects">Create subjects first →</a></div><% } %>
+    </div>
+    <% if (user.role === 'admin') { %>
+    <div class="card"><div class="card-head"><h2>Edit class</h2></div>
+      <form class="card-body" method="post" action="/app/classes/<%= c.id %>"><input type="hidden" name="_csrf" value="<%= csrf %>">
+        <div class="form-grid">
+          <div class="field"><label>Name</label><input type="text" name="name" value="<%= c.name %>" required></div>
+          <div class="field"><label>Section</label><input type="text" name="section" value="<%= c.section || '' %>"></div>
+          <div class="field"><label>Capacity</label><input type="number" name="capacity" min="1" value="<%= c.capacity || '' %>"></div>
+          <div class="field"><label>Room</label><input type="text" name="room" value="<%= c.room || '' %>"></div>
+        </div>
+        <div class="field"><label>Class teacher</label><select name="class_teacher_id"><option value="">—</option><% teachers.forEach(function (t) { %><option value="<%= t.id %>" <%= t.id === c.class_teacher_id ? 'selected' : '' %>><%= t.name %></option><% }) %></select></div>
+        <button class="btn btn-primary">Save</button>
+      </form></div>
+    <div class="card"><div class="card-head"><h2>End of year</h2></div>
+      <form class="card-body" method="post" action="/app/classes/<%= c.id %>/promote" data-confirm="Move all active students in this class?"><input type="hidden" name="_csrf" value="<%= csrf %>">
+        <p class="muted">Promote every active student to another class, or mark them all as graduated.</p>
+        <div class="field"><select name="target" aria-label="Target class">
+          <option value="graduate">Mark as graduated</option>
+          <% promoteTargets.forEach(function (t) { %><option value="<%= t.id %>"><%= t.label %></option><% }) %>
+        </select></div>
+        <button class="btn">Promote students</button>
+      </form>
+      <form class="card-body" method="post" action="/app/classes/<%= c.id %>/delete" data-confirm="Delete this class? Students will become unassigned." style="border-top:1px solid var(--line)">
+        <input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-danger">Delete class</button></form>
+    </div>
+    <% } %>
+  </div>
+</div>

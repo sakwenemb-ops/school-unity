@@ -1,0 +1,50 @@
+<div class="page-head"><div><a href="/platform/schools" class="muted">← Schools</a><h1><%= school.name %></h1><p><%= school.email || '' %> · joined <%= fmtDate(school.created_at) %></p></div>
+  <span class="badge b-<%= school.status %>" style="font-size:14px"><%= school.status %></span></div>
+<div class="grid g-4" style="margin-bottom:16px">
+  <div class="card stat"><div><div class="num"><%= counts.students %></div><div class="lbl">Students</div></div></div>
+  <div class="card stat"><div><div class="num"><%= counts.teachers %></div><div class="lbl">Teachers</div></div></div>
+  <div class="card stat"><div><div class="num"><%= counts.classes %></div><div class="lbl">Classes</div></div></div>
+  <div class="card stat"><div><div class="num"><%= counts.users %></div><div class="lbl">User accounts</div></div></div>
+</div>
+<div class="grid g-2">
+  <div class="stack">
+    <div class="card"><div class="card-head"><h2>Subscription</h2></div>
+      <form class="card-body" method="post" action="/platform/schools/<%= school.id %>">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <div class="form-grid">
+          <div class="field"><label>Plan</label><select name="plan"><% plans.forEach(function (p) { %><option value="<%= p.code %>" <%= p.code === school.plan ? 'selected' : '' %>><%= p.name %> (<%= money(p.price_monthly) %>)</option><% }) %></select></div>
+          <div class="field"><label>Status</label><select name="status"><option value="active" <%= school.status === 'active' ? 'selected' : '' %>>Active</option><option value="suspended" <%= school.status === 'suspended' ? 'selected' : '' %>>Suspended</option></select></div>
+        </div>
+        <button class="btn btn-primary">Save subscription</button>
+      </form>
+    </div>
+    <div class="card"><div class="card-head"><h2>School administrators</h2></div>
+      <ul class="list"><% admins.forEach(function (a) { %><li><strong><%= a.name %></strong> · <%= a.email %><br><small>Last login: <%= a.last_login ? fmtDate(a.last_login) : 'never' %></small></li><% }) %></ul>
+      <% if (admins.length) { %>
+      <form class="card-body" method="post" action="/platform/schools/<%= school.id %>/reset-admin" style="border-top:1px solid var(--line)">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <h3>Reset an admin password</h3>
+        <div class="form-grid">
+          <div class="field"><select name="user_id"><% admins.forEach(function (a) { %><option value="<%= a.id %>"><%= a.email %></option><% }) %></select></div>
+          <div class="field"><input type="password" name="password" minlength="8" placeholder="New password" required></div>
+        </div>
+        <button class="btn">Reset password</button>
+      </form>
+      <% } %>
+    </div>
+    <div class="card"><div class="card-head"><h2 style="color:var(--bad)">Danger zone</h2></div>
+      <form class="card-body" method="post" action="/platform/schools/<%= school.id %>/delete" data-confirm="Permanently delete this school and ALL its data?">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <p class="muted">Deleting a school removes all its students, teachers, results and payments permanently. Type <code><%= school.slug %></code> to confirm.</p>
+        <div class="field"><input type="text" name="confirm" required></div>
+        <button class="btn btn-danger">Delete school</button>
+      </form>
+    </div>
+  </div>
+  <div class="card"><div class="card-head"><h2>Recent activity</h2></div>
+    <ul class="list">
+      <% activity.forEach(function (a) { %><li><%= a.action %><br><small><%= a.user_name || 'System' %> · <%= fmtDate(a.created_at) %></small></li><% }) %>
+      <% if (!activity.length) { %><li class="empty">No activity yet.</li><% } %>
+    </ul>
+  </div>
+</div>

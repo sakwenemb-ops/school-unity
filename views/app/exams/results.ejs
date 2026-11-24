@@ -1,0 +1,25 @@
+<div class="page-head"><div><a class="muted" href="/app/exams">← Exams</a><h1><%= exam.name %> — results</h1><p><%= exam.term %> <%= exam.academic_year %> · out of <%= exam.max_score %></p></div>
+  <button class="btn no-print" data-print><svg><use href="#i-print"/></svg>Print broadsheet</button></div>
+<div class="card">
+  <div class="card-head no-print"><form class="filters" method="get">
+    <select name="class_id" data-autosubmit aria-label="Class"><% classes.forEach(function (c) { %><option value="<%= c.id %>" <%= cls && cls.id === c.id ? 'selected' : '' %>><%= c.name %> <%= c.section || '' %></option><% }) %></select>
+    <noscript><button class="btn">Show</button></noscript></form></div>
+  <% if (!data) { %><div class="empty">Select a class.</div><% } else { %>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Pos</th><th>Student</th>
+      <% data.subjects.forEach(function (s) { %><th class="num" title="<%= s.name %>"><%= s.code || s.name.slice(0, 4) %></th><% }) %>
+      <th class="num">Total</th><th class="num">Avg</th><th>Grade</th><th class="no-print"></th></tr></thead>
+    <tbody>
+      <% data.rows.slice().sort((a, b) => (a.position || 1e9) - (b.position || 1e9)).forEach(function (r) { const g = gradeFor(r.pct); %>
+        <tr><td><b><%= r.position || '—' %></b></td><td><a href="/app/students/<%= r.id %>"><%= r.first_name %> <%= r.last_name %></a></td>
+          <% data.subjects.forEach(function (s) { %><td class="num"><%= r.scores[s.id] ?? '—' %></td><% }) %>
+          <td class="num"><b><%= r.total || '—' %></b></td><td class="num"><%= r.avg == null ? '—' : r.avg.toFixed(1) %></td><td><span class="badge b-<%= g %>"><%= g %></span></td>
+          <td class="no-print"><% if (r.avg != null) { %><a class="btn btn-sm" href="/app/students/<%= r.id %>/report/<%= exam.id %>">Report</a><% } %></td></tr>
+      <% }) %>
+      <% if (!data.rows.length) { %><tr><td colspan="<%= data.subjects.length + 6 %>" class="empty">No students.</td></tr><% } %>
+    </tbody>
+    <tfoot><tr><th colspan="2">Subject average</th>
+      <% data.subjects.forEach(function (s) { %><th class="num"><%= data.subjectAvg[s.id] == null ? '—' : data.subjectAvg[s.id].toFixed(1) %></th><% }) %><th colspan="4"></th></tr></tfoot>
+  </table></div>
+  <% } %>
+</div>

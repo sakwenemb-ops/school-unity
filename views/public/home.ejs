@@ -1,0 +1,91 @@
+<section class="hero">
+  <div>
+    <span class="eyebrow">School management, made simple</span>
+    <h1>One platform to run <em>every school</em> — together.</h1>
+    <p class="lead">School Unity brings students, teachers, classes, attendance, exams, fees and parent communication into one secure, cloud-based workspace for each of your schools.</p>
+    <div class="actions">
+      <a class="btn btn-primary btn-lg" href="/signup">Register your school — free</a>
+      <a class="btn btn-lg" href="/login">Sign in</a>
+    </div>
+    <p class="muted" style="margin-top:16px">No credit card required · Your data is isolated per school · Set up in minutes</p>
+  </div>
+  <div class="mock" aria-hidden="true">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <strong>Greenfield Academy</strong><span class="badge b-brand">Term 1</span>
+    </div>
+    <div class="row">
+      <div class="tile"><small class="muted">Students</small><b>1,248</b></div>
+      <div class="tile"><small class="muted">Teachers</small><b>64</b></div>
+      <div class="tile"><small class="muted">Attendance</small><b>94%</b></div>
+    </div>
+    <div class="tile" style="margin-bottom:12px">
+      <small class="muted">Fees collected this term</small>
+      <div class="progress" style="margin:8px 0 4px"><span style="width:72%"></span></div>
+      <small><b>72%</b> of expected</small>
+    </div>
+    <div class="vbars" style="height:110px">
+      <% [62,75,70,88,80,92,85,95].forEach(function (h) { %><div class="vbar"><span class="col" style="height:<%= h %>%"></span></div><% }) %>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="features" style="background:var(--bg);max-width:none">
+  <div style="max-width:1200px;margin:0 auto">
+    <h2>Everything your school runs on</h2>
+    <p class="sub">Purpose-built modules that work together, so administrators, teachers and students always see the same, up-to-date information.</p>
+    <div class="grid g-3">
+      <%
+        const features = [
+          ['students','t-indigo','Student records','Admissions, guardians, medical notes, class placement, promotion and CSV import/export.'],
+          ['teachers','t-teal','Teachers & staff','Staff profiles, qualifications, class-teacher roles and individual logins.'],
+          ['classes','t-amber','Classes & subjects','Organise streams and sections, assign subjects and subject teachers per class.'],
+          ['check','t-rose','Attendance','Mark daily registers in seconds and track attendance trends per class and student.'],
+          ['award','t-indigo','Exams & report cards','Enter marks, auto-grade, rank positions and print beautiful report cards.'],
+          ['cash','t-teal','Fees & payments','Define fee structures per term, record payments, print receipts and see balances.'],
+          ['megaphone','t-amber','Announcements & calendar','Reach all staff, students or both, and keep everyone on the same calendar.'],
+          ['shield','t-rose','Secure multi-tenancy','Each school’s data is isolated, with role-based access for admins, teachers and students.'],
+          ['chart','t-indigo','Live dashboards','Enrolment, attendance and finance insights the moment you sign in.'],
+        ];
+      %>
+      <% features.forEach(function (f) { %>
+        <div class="card feature">
+          <div class="ico <%= f[1] %>"><svg><use href="#i-<%= f[0] %>"/></svg></div>
+          <h3><%= f[2] %></h3>
+          <p><%= f[3] %></p>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="pricing">
+  <h2>Simple pricing that grows with you</h2>
+  <p class="sub">Start free and upgrade as your school grows. Paid plans include a 30-day free trial.</p>
+  <div class="grid g-3">
+    <% plans.forEach(function (p, i) { %>
+      <div class="card plan <%= i === 1 ? 'featured' : '' %>">
+        <% if (i === 1) { %><span class="ribbon">Most popular</span><% } %>
+        <h3><%= p.name %></h3>
+        <p class="muted" style="margin:0"><%= p.description %></p>
+        <div class="price"><%= p.price_monthly ? money(p.price_monthly) : 'Free' %><% if (p.price_monthly) { %> <small class="muted">/ month</small><% } %></div>
+        <ul>
+          <li><%= p.student_limit == null ? 'Unlimited' : 'Up to ' + p.student_limit %> students</li>
+          <li><%= p.teacher_limit == null ? 'Unlimited' : 'Up to ' + p.teacher_limit %> teachers</li>
+          <li>Attendance, exams &amp; report cards</li>
+          <li>Fees, payments &amp; receipts</li>
+          <li>Student self-service portal</li>
+          <% if (p.code === 'premium') { %><li>Priority support &amp; onboarding</li><% } %>
+        </ul>
+        <a class="btn <%= i === 1 ? 'btn-primary' : '' %> btn-block" href="/signup?plan=<%= p.code %>">Choose <%= p.name %></a>
+      </div>
+    <% }) %>
+  </div>
+</section>
+
+<section class="section">
+  <div class="cta-band">
+    <h2>Bring your school community together</h2>
+    <p style="opacity:.9;margin-bottom:22px"><%= stats.schools %> schools and <%= stats.students.toLocaleString() %> students already manage their day on School Unity.</p>
+    <a class="btn btn-lg" href="/signup">Create your school workspace</a>
+  </div>
+</section>

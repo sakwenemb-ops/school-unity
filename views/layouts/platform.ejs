@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('../partials/head') %></head>
+<body>
+<%- include('../partials/icons') %>
+<% const nav = (href, icon, label) => { const active = href === '/platform' ? (path === '/platform' || path === '/platform/') : path.startsWith(href);
+  return `<a href="${href}" class="${active ? 'active' : ''}"><svg><use href="#i-${icon}"/></svg>${label}</a>`; }; %>
+<div class="shell">
+  <aside class="sidebar">
+    <a href="/platform" class="brand"><span class="logo">SU</span> School Unity</a>
+    <div class="school-chip"><strong>Platform console</strong><span>SaaS operator</span></div>
+    <nav class="nav">
+      <%- nav('/platform', 'chart', 'Overview') %>
+      <%- nav('/platform/schools', 'school', 'Schools') %>
+      <%- nav('/platform/plans', 'layers', 'Plans') %>
+    </nav>
+    <div class="sidebar-foot nav">
+      <form method="post" action="/logout"><input type="hidden" name="_csrf" value="<%= csrf %>">
+        <button class="btn btn-ghost btn-block" style="justify-content:flex-start;color:#cbd5e1;padding:8px 12px;font-weight:500"><svg><use href="#i-logout"/></svg>Sign out</button>
+      </form>
+    </div>
+  </aside>
+  <div class="main">
+    <%- include('../partials/topbar') %>
+    <main class="content">
+      <%- include('../partials/flash') %>
+      <%- body %>
+    </main>
+  </div>
+</div>
+<script src="/js/app.js"></script>
+</body>
+</html>

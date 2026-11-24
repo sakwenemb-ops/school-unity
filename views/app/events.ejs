@@ -1,0 +1,25 @@
+<div class="page-head"><div><h1>School calendar</h1><p>Term dates, exams, meetings and events.</p></div></div>
+<div class="grid <%= user.role === 'admin' ? 'g-main' : '' %>">
+  <div class="stack">
+    <div class="card"><div class="card-head"><h2>Upcoming</h2></div><ul class="list">
+      <% upcoming.forEach(function (e) { const d = new Date(e.date + 'T00:00:00'); %>
+        <li style="display:flex;gap:14px;align-items:center"><div class="date-tile"><b><%= d.getDate() %></b><small><%= d.toLocaleString('en', { month: 'short' }) %></small></div>
+          <div style="flex:1"><strong><%= e.title %></strong><br><small><%= d.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></small><% if (e.description) { %><p style="margin:4px 0 0"><%= e.description %></p><% } %></div>
+          <% if (user.role === 'admin') { %><form class="inline" method="post" action="/app/events/<%= e.id %>/delete" data-confirm="Delete this event?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link-btn danger">Delete</button></form><% } %></li>
+      <% }) %>
+      <% if (!upcoming.length) { %><li class="empty">No upcoming events.</li><% } %></ul></div>
+    <% if (past.length) { %>
+    <div class="card"><div class="card-head"><h2>Past events</h2></div><ul class="list">
+      <% past.forEach(function (e) { %><li class="muted"><%= fmtDate(e.date) %> — <%= e.title %></li><% }) %></ul></div>
+    <% } %>
+  </div>
+  <% if (user.role === 'admin') { %>
+  <form class="card card-body" method="post" action="/app/events" style="align-self:start"><input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>Add event</h2>
+    <div class="field"><label for="title">Title</label><input id="title" type="text" name="title" required></div>
+    <div class="field"><label for="date">Date</label><input id="date" type="date" name="date" required></div>
+    <div class="field"><label for="description">Details</label><textarea id="description" name="description"></textarea></div>
+    <button class="btn btn-primary btn-block">Add event</button>
+  </form>
+  <% } %>
+</div>

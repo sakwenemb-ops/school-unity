@@ -1,0 +1,73 @@
+// School Unity — multi-tenant school management SaaS
+const path = require('path');
+const crypto = require('crypto');
+const express = require('express');
+const session = require('express-session');
+const SqliteStore = require('./src/session-store');
+const helpers = require('./src/helpers');
+const { loadUser, exposeFlash, csrf, requireAuth, requireSchool } = require('./src/middleware');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const isProd = process.env.NODE_ENV === 'production';
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+if (isProd) app.set('trust proxy', 1);
+app.disable('x-powered-by');
+Object.assign(app.locals, helpers, { appName: 'School Unity', showDemo: !isProd });
+
+app.use((req, res, next) => {
+  res.set({
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'same-origin',
+    'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; form-action 'self'; frame-ancestors 'none'",
+  });
+  next();
+});
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: isProd ? '7d' : 0 }));
+app.use(express.urlencoded({ extended: false, limit: '2mb' }));
+app.use(session({
+  store: new SqliteStore(),
+  secret: process.env.SESSION_SECRET || crypto.createHash('sha256').update(__dirname + 'school-unity-dev').digest('hex'),
+  resave: false,
+  saveUninitialized: false,
+  name: 'su.sid',
+  cookie: { httpOnly: true, sameSite: 'lax', secure: isProd, maxAge: 8 * 60 * 60 * 1000 },
+}));
+app.use(loadUser);
+app.use(exposeFlash);
+app.use(csrf);
+
+// res.page(view, locals): render a view inside a layout
+app.use((req, res, next) => {
+  res.page = (view, locals = {}) => {
+    const layout = locals.layout || (req.user?.role === 'superadmin' ? 'layouts/platform' : 'layouts/app');
+    res.render(view, locals, (err, body) => {
+      if (err) return next(err);
+      res.render(layout, { ...locals, body });
+    });
+  };
+  next();
+});
+
+app.use('/', require('./src/routes/public'));
+app.use('/platform', requireAuth, require('./src/routes/platform'));
+const school = [requireAuth, requireSchool];
+app.use('/app', ...school, require('./src/routes/core'));
+app.use('/app', ...school, require('./src/routes/people'));
+app.use('/app', ...school, require('./src/routes/academics'));
+app.use('/app', ...school, require('./src/routes/finance'));
+app.use('/app', ...school, require('./src/routes/portal'));
+
+app.use((req, res) => res.status(404).render('error', { title: 'Page not found', message: "The page you're looking for doesn't exist." }));
+app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
+  console.error(err);
+  res.status(500).render('error', { title: 'Something went wrong', message: isProd ? 'An unexpected error occurred.' : err.message });
+});
+
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`School Unity running at http://localhost:${PORT}`));
+}
+module.exports = app;

@@ -1,0 +1,47 @@
+<div class="page-head"><div><h1>Fees</h1><p><%= school.current_term %> · <%= school.academic_year %> <small>(change the active term in <a href="/app/settings">settings</a>)</small></p></div>
+  <div class="actions"><a class="btn" href="/app/fees/payments">Payment history</a><a class="btn btn-primary" href="/app/fees/pay"><svg><use href="#i-plus"/></svg>Record payment</a></div></div>
+<div class="grid g-3" style="margin-bottom:16px">
+  <div class="card stat"><div class="ico t-indigo"><svg><use href="#i-layers"/></svg></div><div><div class="num"><%= money(totals.expected, school.currency) %></div><div class="lbl">Expected this term</div></div></div>
+  <div class="card stat"><div class="ico t-teal"><svg><use href="#i-cash"/></svg></div><div><div class="num"><%= money(totals.paid, school.currency) %></div><div class="lbl">Collected · <%= totals.expected ? Math.round(100 * totals.paid / totals.expected) : 0 %>%</div></div></div>
+  <div class="card stat"><div class="ico t-rose"><svg><use href="#i-chart"/></svg></div><div><div class="num"><%= money(totals.balance, school.currency) %></div><div class="lbl">Outstanding</div></div></div>
+</div>
+<div class="grid g-main">
+  <div class="card">
+    <div class="card-head"><h2>Student balances</h2>
+      <form class="filters" method="get">
+        <select name="class_id" data-autosubmit aria-label="Class"><option value="">All classes</option><% classes.forEach(function (c) { %><option value="<%= c.id %>" <%= String(c.id) === String(classId) ? 'selected' : '' %>><%= c.name %> <%= c.section || '' %></option><% }) %></select>
+        <select name="filter" data-autosubmit aria-label="Filter"><option value="">Everyone</option><option value="owing" <%= filter === 'owing' ? 'selected' : '' %>>With balance</option><option value="cleared" <%= filter === 'cleared' ? 'selected' : '' %>>Cleared</option></select>
+      </form></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Student</th><th>Class</th><th class="num">Expected</th><th class="num">Paid</th><th class="num">Balance</th><th></th></tr></thead>
+      <tbody>
+        <% balances.forEach(function (b) { %>
+          <tr><td><a href="/app/students/<%= b.id %>"><%= b.first_name %> <%= b.last_name %></a><br><small><%= b.admission_no %></small></td><td><%= b.class_name ? b.class_name + ' ' + (b.section || '') : '—' %></td>
+            <td class="num"><%= money(b.expected, school.currency) %></td><td class="num"><%= money(b.paid, school.currency) %></td>
+            <td class="num"><% if (b.balance > 0) { %><span class="badge b-bad"><%= money(b.balance, school.currency) %></span><% } else { %><span class="badge b-ok"><%= b.balance < 0 ? 'Credit ' + money(-b.balance, school.currency) : 'Cleared' %></span><% } %></td>
+            <td><a class="btn btn-sm" href="/app/fees/pay?student_id=<%= b.id %>">Pay</a></td></tr>
+        <% }) %>
+        <% if (!balances.length) { %><tr><td colspan="6" class="empty">No students match.</td></tr><% } %>
+      </tbody></table></div>
+  </div>
+  <div class="stack">
+    <div class="card"><div class="card-head"><h2>Fee structure</h2></div>
+      <ul class="list">
+        <% items.forEach(function (i) { %>
+          <li style="display:flex;justify-content:space-between;gap:8px;align-items:center"><div><strong><%= i.name %></strong><br><small><%= i.class_id ? i.class_name + ' ' + (i.section || '') : 'All classes' %></small></div>
+            <div style="text-align:right"><b><%= money(i.amount, school.currency) %></b><br><form class="inline" method="post" action="/app/fees/items/<%= i.id %>/delete" data-confirm="Remove this fee item?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link-btn danger" style="font-size:12px">Remove</button></form></div></li>
+        <% }) %>
+        <% if (!items.length) { %><li class="muted">No fees set for <%= school.current_term %>.</li><% } %>
+      </ul>
+      <form class="card-body" method="post" action="/app/fees/items" style="border-top:1px solid var(--line)"><input type="hidden" name="_csrf" value="<%= csrf %>">
+        <h3>Add fee item</h3>
+        <div class="field"><input type="text" name="name" placeholder="e.g. Tuition" required aria-label="Fee name"></div>
+        <div class="form-grid">
+          <div class="field"><input type="number" name="amount" step="0.01" min="0.01" placeholder="Amount" required aria-label="Amount"></div>
+          <div class="field"><select name="class_id" aria-label="Applies to"><option value="">All classes</option><% classes.forEach(function (c) { %><option value="<%= c.id %>"><%= c.name %> <%= c.section || '' %></option><% }) %></select></div>
+        </div>
+        <button class="btn btn-block">Add to <%= school.current_term %></button>
+      </form>
+    </div>
+  </div>
+</div>

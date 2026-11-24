@@ -1,0 +1,30 @@
+<div class="page-head"><div><h1>Platform overview</h1><p>All schools running on School Unity.</p></div>
+  <a class="btn btn-primary" href="/platform/schools">Manage schools</a></div>
+<div class="grid g-4" style="margin-bottom:16px">
+  <div class="card stat"><div class="ico t-indigo"><svg><use href="#i-school"/></svg></div><div><div class="num"><%= stats.schools %></div><div class="lbl"><%= stats.active %> active schools</div></div></div>
+  <div class="card stat"><div class="ico t-teal"><svg><use href="#i-students"/></svg></div><div><div class="num"><%= stats.students.toLocaleString() %></div><div class="lbl">Students managed</div></div></div>
+  <div class="card stat"><div class="ico t-amber"><svg><use href="#i-teachers"/></svg></div><div><div class="num"><%= stats.teachers.toLocaleString() %></div><div class="lbl">Teachers</div></div></div>
+  <div class="card stat"><div class="ico t-rose"><svg><use href="#i-cash"/></svg></div><div><div class="num"><%= money(stats.mrr) %></div><div class="lbl">Monthly recurring revenue</div></div></div>
+</div>
+<div class="grid g-main">
+  <div class="card">
+    <div class="card-head"><h2>Newest schools</h2><a href="/platform/schools">View all</a></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>School</th><th>Plan</th><th>Status</th><th>Joined</th></tr></thead>
+      <tbody>
+      <% recent.forEach(function (s) { %>
+        <tr><td><a href="/platform/schools/<%= s.id %>"><strong><%= s.name %></strong></a><br><small><%= s.email %></small></td>
+          <td><span class="badge b-brand"><%= s.plan %></span></td><td><span class="badge b-<%= s.status %>"><%= s.status %></span></td><td><%= fmtDate(s.created_at) %></td></tr>
+      <% }) %>
+      <% if (!recent.length) { %><tr><td colspan="4" class="empty">No schools yet.</td></tr><% } %>
+      </tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>Schools by plan</h2></div>
+    <div class="card-body bars">
+      <% const maxP = Math.max(1, ...byPlan.map(p => p.n)); byPlan.forEach(function (p) { %>
+        <div class="bar-row"><span><%= p.name %></span><div class="bar-track"><div class="bar-fill" style="width:<%= (p.n / maxP) * 100 %>%"></div></div><b class="num"><%= p.n %></b></div>
+      <% }) %>
+    </div>
+  </div>
+</div>

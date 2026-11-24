@@ -1,0 +1,28 @@
+<div class="page-head"><div><h1>Welcome, <%= user.name.split(' ')[0] %></h1><p><%= school.name %> · <%= school.current_term %>, <%= school.academic_year %></p></div>
+  <div class="actions"><a class="btn btn-primary" href="/app/attendance"><svg><use href="#i-check"/></svg>Take attendance</a><a class="btn" href="/app/exams"><svg><use href="#i-award"/></svg>Enter marks</a></div></div>
+<div class="grid g-main">
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h2>My classes</h2></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Class</th><th class="num">Students</th><th>Today's register</th><th></th></tr></thead>
+        <tbody>
+          <% classes.forEach(function (c) { %>
+            <tr><td><a href="/app/classes/<%= c.id %>"><strong><%= c.name %> <%= c.section || '' %></strong></a><% if (c.class_teacher_id === user.teacher_id) { %> <span class="badge b-brand">Class teacher</span><% } %></td>
+              <td class="num"><%= c.student_count %></td>
+              <td><% if (marked.has(c.id)) { %><span class="badge b-ok">Marked</span><% } else { %><span class="badge b-warn">Pending</span><% } %></td>
+              <td><a class="btn btn-sm" href="/app/attendance?class_id=<%= c.id %>">Register</a></td></tr>
+          <% }) %>
+          <% if (!classes.length) { %><tr><td colspan="4" class="empty">You haven't been assigned to any classes yet.</td></tr><% } %>
+        </tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Subjects I teach</h2></div>
+      <ul class="list">
+        <% subjects.forEach(function (s) { %><li><strong><%= s.subject_name %></strong> · <%= s.class_name %> <%= s.section || '' %></li><% }) %>
+        <% if (!subjects.length) { %><li class="empty">No subjects assigned.</li><% } %>
+      </ul>
+    </div>
+  </div>
+  <div class="stack"><%- include('../partials/side-feed') %></div>
+</div>

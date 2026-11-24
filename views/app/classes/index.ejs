@@ -1,0 +1,30 @@
+<div class="page-head"><div><h1>Classes</h1><p><%= classes.length %> classes</p></div></div>
+<div class="grid <%= user.role === 'admin' ? 'g-main' : '' %>">
+  <div class="card">
+    <div class="table-wrap"><table>
+      <thead><tr><th>Class</th><th>Class teacher</th><th>Room</th><th class="num">Students</th><th>Capacity</th></tr></thead>
+      <tbody>
+        <% classes.forEach(function (c) { const pct = c.capacity ? Math.min(100, 100 * c.student_count / c.capacity) : 0; %>
+          <tr><td><a href="/app/classes/<%= c.id %>"><strong><%= c.name %> <%= c.section || '' %></strong></a></td><td><%= c.teacher_name || '—' %></td><td><%= c.room || '—' %></td>
+            <td class="num"><%= c.student_count %></td>
+            <td style="min-width:120px"><% if (c.capacity) { %><div class="progress"><span style="width:<%= pct %>%;<%= pct >= 100 ? 'background:var(--bad)' : '' %>"></span></div><small><%= c.student_count %>/<%= c.capacity %></small><% } else { %>—<% } %></td></tr>
+        <% }) %>
+        <% if (!classes.length) { %><tr><td colspan="5"><div class="empty"><svg><use href="#i-classes"/></svg>No classes yet.</div></td></tr><% } %>
+      </tbody></table></div>
+  </div>
+  <% if (user.role === 'admin') { %>
+  <form class="card card-body" method="post" action="/app/classes" style="align-self:start">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>New class</h2>
+    <div class="form-grid">
+      <div class="field"><label for="name">Name *</label><input id="name" type="text" name="name" placeholder="Grade 4" required></div>
+      <div class="field"><label for="section">Stream / section</label><input id="section" type="text" name="section" placeholder="A"></div>
+      <div class="field"><label for="capacity">Capacity</label><input id="capacity" type="number" min="1" name="capacity"></div>
+      <div class="field"><label for="room">Room</label><input id="room" type="text" name="room"></div>
+    </div>
+    <div class="field"><label for="class_teacher_id">Class teacher</label><select id="class_teacher_id" name="class_teacher_id"><option value="">—</option>
+      <% teachers.forEach(function (t) { %><option value="<%= t.id %>"><%= t.name %></option><% }) %></select></div>
+    <button class="btn btn-primary btn-block">Create class</button>
+  </form>
+  <% } %>
+</div>

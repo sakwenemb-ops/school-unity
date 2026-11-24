@@ -1,0 +1,9 @@
+<div class="page-head"><div class="person"><span class="avatar lg"><%= initials(s.first_name + ' ' + s.last_name) %></span><div><h1 style="margin:0"><%= s.first_name %> <%= s.last_name %></h1><p><code><%= s.admission_no %></code> · <%= s.class_name ? s.class_name + ' ' + (s.section || '') : 'No class' %></p></div></div></div>
+<div class="grid g-2">
+  <div class="card"><div class="card-head"><h2>My details</h2></div><div class="card-body"><dl class="kv">
+    <dt>Gender</dt><dd><%= s.gender || '—' %></dd><dt>Date of birth</dt><dd><%= s.dob ? fmtDate(s.dob) : '—' %></dd>
+    <dt>Admitted</dt><dd><%= s.admission_date ? fmtDate(s.admission_date) : '—' %></dd><dt>Address</dt><dd><%= s.address || '—' %></dd></dl></div></div>
+  <div class="card"><div class="card-head"><h2>Parent / guardian</h2></div><div class="card-body"><dl class="kv">
+    <dt>Name</dt><dd><%= s.guardian_name || '—' %></dd><dt>Phone</dt><dd><%= s.guardian_phone || '—' %></dd><dt>Email</dt><dd><%= s.guardian_email || '—' %></dd></dl>
+    <p class="muted" style="margin-top:12px">Need to update these details? Contact the school office.</p></div></div>
+</div>

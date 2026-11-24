@@ -1,0 +1,8 @@
+<div class="page-head"><div><h1>My results</h1></div></div>
+<div class="card"><div class="table-wrap"><table><thead><tr><th>Exam</th><th>Term</th><th class="num">Subjects</th><th class="num">Average</th><th>Grade</th><th></th></tr></thead><tbody>
+  <% exams.forEach(function (e) { const g = gradeFor(100 * e.avg / e.max_score); %>
+    <tr><td><strong><%= e.name %></strong></td><td><%= e.term %> <%= e.academic_year %></td><td class="num"><%= e.subjects %></td><td class="num"><%= e.avg.toFixed(1) %></td><td><span class="badge b-<%= g %>"><%= g %></span></td>
+      <td><a class="btn btn-sm" href="/app/me/results/<%= e.id %>">Report card</a></td></tr>
+  <% }) %>
+  <% if (!exams.length) { %><tr><td colspan="6" class="empty">No results published yet.</td></tr><% } %>
+</tbody></table></div></div>

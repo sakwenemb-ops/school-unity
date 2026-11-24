@@ -1,0 +1,27 @@
+<div class="page-head"><div><h1>Exams &amp; results</h1><p>Create assessments, enter marks and publish report cards.</p></div></div>
+<div class="grid <%= user.role === 'admin' ? 'g-main' : '' %>">
+  <div class="card"><div class="table-wrap"><table>
+    <thead><tr><th>Exam</th><th>Term</th><th>Date</th><th class="num">Out of</th><th class="num">Students graded</th><th></th></tr></thead>
+    <tbody>
+      <% exams.forEach(function (e) { %>
+        <tr><td><a href="/app/exams/<%= e.id %>"><strong><%= e.name %></strong></a></td><td><%= e.term %> <%= e.academic_year %></td><td><%= e.start_date ? fmtDate(e.start_date) : '—' %></td>
+          <td class="num"><%= e.max_score %></td><td class="num"><%= e.graded %></td>
+          <td class="actions" style="justify-content:flex-end"><a class="btn btn-sm" href="/app/exams/<%= e.id %>">Enter marks</a><a class="btn btn-sm" href="/app/exams/<%= e.id %>/results">Results</a>
+            <% if (user.role === 'admin') { %><form class="inline" method="post" action="/app/exams/<%= e.id %>/delete" data-confirm="Delete this exam and all its marks?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link-btn danger">Delete</button></form><% } %></td></tr>
+      <% }) %>
+      <% if (!exams.length) { %><tr><td colspan="6"><div class="empty"><svg><use href="#i-award"/></svg>No exams yet.</div></td></tr><% } %>
+    </tbody></table></div></div>
+  <% if (user.role === 'admin') { %>
+  <form class="card card-body" method="post" action="/app/exams" style="align-self:start"><input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>New exam</h2>
+    <div class="field"><label for="name">Name *</label><input id="name" type="text" name="name" placeholder="Mid-Term Exam" required></div>
+    <div class="form-grid">
+      <div class="field"><label for="term">Term *</label><input id="term" type="text" name="term" value="<%= school.current_term %>" required></div>
+      <div class="field"><label for="academic_year">Year *</label><input id="academic_year" type="text" name="academic_year" value="<%= school.academic_year %>" required></div>
+      <div class="field"><label for="start_date">Start date</label><input id="start_date" type="date" name="start_date"></div>
+      <div class="field"><label for="max_score">Marked out of</label><input id="max_score" type="number" min="1" name="max_score" value="100"></div>
+    </div>
+    <button class="btn btn-primary btn-block">Create exam</button>
+  </form>
+  <% } %>
+</div>

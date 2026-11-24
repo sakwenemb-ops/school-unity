@@ -1,0 +1,38 @@
+<div class="auth-wrap">
+  <div class="card auth-card wide">
+    <h1>Register your school</h1>
+    <p class="muted">Create a dedicated School Unity workspace. You'll be the school's first administrator.</p>
+    <%- include('../partials/errors') %>
+    <form method="post" action="/signup" autocomplete="on">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <fieldset>
+        <legend>School</legend>
+        <div class="form-grid">
+          <div class="field full"><label for="school_name">School name</label><input id="school_name" name="school_name" type="text" required value="<%= form.school_name || '' %>" placeholder="e.g. Greenfield Academy"></div>
+          <div class="field"><label for="country">Country</label><input id="country" name="country" type="text" value="<%= form.country || '' %>"></div>
+          <div class="field"><label for="currency">Currency code</label><input id="currency" name="currency" type="text" maxlength="3" value="<%= form.currency || 'USD' %>"><div class="hint">e.g. USD, KES, UGX, NGN, GBP</div></div>
+          <div class="field full"><label for="phone">School phone</label><input id="phone" name="phone" type="tel" value="<%= form.phone || '' %>"></div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Administrator account</legend>
+        <div class="form-grid">
+          <div class="field"><label for="admin_name">Your full name</label><input id="admin_name" name="admin_name" type="text" required value="<%= form.admin_name || '' %>"></div>
+          <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" required value="<%= form.email || '' %>"></div>
+          <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" minlength="8" required><div class="hint">At least 8 characters</div></div>
+          <div class="field"><label for="password_confirm">Confirm password</label><input id="password_confirm" name="password_confirm" type="password" minlength="8" required></div>
+        </div>
+      </fieldset>
+      <div class="field">
+        <label for="plan">Plan</label>
+        <select id="plan" name="plan">
+          <% plans.forEach(function (p) { %>
+            <option value="<%= p.code %>" <%= form.plan === p.code ? 'selected' : '' %>><%= p.name %> — <%= p.price_monthly ? money(p.price_monthly) + '/mo (30-day trial)' : 'Free' %> · <%= p.student_limit == null ? 'unlimited' : p.student_limit %> students</option>
+          <% }) %>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-lg btn-block">Create school workspace</button>
+      <p class="muted" style="text-align:center;margin-top:14px">Already registered? <a href="/login">Sign in</a></p>
+    </form>
+  </div>
+</div>

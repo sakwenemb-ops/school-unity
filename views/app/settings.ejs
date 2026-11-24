@@ -1,0 +1,42 @@
+<div class="page-head"><div><h1>School settings</h1><p>Your school profile, academic calendar and administrators.</p></div></div>
+<div class="grid g-main">
+  <form class="card card-body" method="post" action="/app/settings"><input type="hidden" name="_csrf" value="<%= csrf %>">
+    <fieldset><legend>School profile</legend>
+      <div class="form-grid">
+        <div class="field full"><label for="name">School name *</label><input id="name" type="text" name="name" value="<%= school.name %>" required></div>
+        <div class="field full"><label for="motto">Motto</label><input id="motto" type="text" name="motto" value="<%= school.motto || '' %>"></div>
+        <div class="field"><label for="email">Email</label><input id="email" type="email" name="email" value="<%= school.email || '' %>"></div>
+        <div class="field"><label for="phone">Phone</label><input id="phone" type="tel" name="phone" value="<%= school.phone || '' %>"></div>
+        <div class="field full"><label for="address">Address</label><input id="address" type="text" name="address" value="<%= school.address || '' %>"></div>
+        <div class="field"><label for="country">Country</label><input id="country" type="text" name="country" value="<%= school.country || '' %>"></div>
+        <div class="field"><label for="currency">Currency</label><input id="currency" type="text" maxlength="3" name="currency" value="<%= school.currency %>"></div>
+      </div>
+    </fieldset>
+    <fieldset><legend>Academic calendar</legend>
+      <div class="form-grid">
+        <div class="field"><label for="academic_year">Academic year *</label><input id="academic_year" type="text" name="academic_year" value="<%= school.academic_year %>" required></div>
+        <div class="field"><label for="current_term">Current term *</label><input id="current_term" type="text" name="current_term" value="<%= school.current_term %>" list="terms" required>
+          <datalist id="terms"><option>Term 1</option><option>Term 2</option><option>Term 3</option><option>Semester 1</option><option>Semester 2</option></datalist>
+          <div class="hint">Fees and payments are tracked per term.</div></div>
+      </div>
+    </fieldset>
+    <button class="btn btn-primary">Save settings</button>
+  </form>
+  <div class="stack">
+    <div class="card"><div class="card-head"><h2>Administrators</h2></div>
+      <ul class="list">
+        <% admins.forEach(function (a) { %>
+          <li style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><strong><%= a.name %></strong> <% if (!a.active) { %><span class="badge b-bad">Disabled</span><% } %><br><small><%= a.email %></small></div>
+            <% if (a.id !== user.id) { %><form class="inline" method="post" action="/app/settings/admins/<%= a.id %>/toggle"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm"><%= a.active ? 'Disable' : 'Enable' %></button></form><% } else { %><span class="badge b-brand">You</span><% } %></li>
+        <% }) %>
+      </ul>
+      <form class="card-body" method="post" action="/app/settings/admins" style="border-top:1px solid var(--line)"><input type="hidden" name="_csrf" value="<%= csrf %>">
+        <h3>Add administrator</h3>
+        <div class="field"><input type="text" name="name" placeholder="Full name" required aria-label="Name"></div>
+        <div class="field"><input type="email" name="email" placeholder="Email" required aria-label="Email"></div>
+        <div class="field"><input type="password" name="password" placeholder="Initial password (8+ chars)" minlength="8" required aria-label="Password"></div>
+        <button class="btn btn-block">Add administrator</button>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,23 @@
+<div class="page-head"><div><a class="muted" href="/app/attendance">← Register</a><h1>Attendance report</h1></div>
+  <button class="btn no-print" data-print><svg><use href="#i-print"/></svg>Print</button></div>
+<div class="card">
+  <div class="card-head no-print">
+    <form class="filters" method="get">
+      <select name="class_id" aria-label="Class"><% classes.forEach(function (c) { %><option value="<%= c.id %>" <%= c.id === classId ? 'selected' : '' %>><%= c.name %> <%= c.section || '' %></option><% }) %></select>
+      <label class="check" style="margin:0">From <input type="date" name="from" value="<%= from %>"></label>
+      <label class="check" style="margin:0">To <input type="date" name="to" value="<%= to %>"></label>
+      <button class="btn">Run report</button>
+    </form>
+  </div>
+  <div class="card-body muted" style="padding-bottom:0"><%= fmtDate(from) %> – <%= fmtDate(to) %></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Student</th><th class="num">Days</th><th class="num">Present</th><th class="num">Absent</th><th class="num">Late</th><th class="num">Excused</th><th>Rate</th></tr></thead>
+    <tbody>
+      <% rows.forEach(function (r) { const rate = r.total ? Math.round(100 * (r.present + r.late) / r.total) : null; %>
+        <tr><td><a href="/app/students/<%= r.id %>"><%= r.first_name %> <%= r.last_name %></a> <small><%= r.admission_no %></small></td>
+          <td class="num"><%= r.total %></td><td class="num"><%= r.present || 0 %></td><td class="num"><%= r.absent || 0 %></td><td class="num"><%= r.late || 0 %></td><td class="num"><%= r.excused || 0 %></td>
+          <td style="min-width:140px"><% if (rate != null) { %><div class="progress"><span style="width:<%= rate %>%;<%= rate < 75 ? 'background:var(--bad)' : '' %>"></span></div><small><%= rate %>%</small><% } else { %>—<% } %></td></tr>
+      <% }) %>
+      <% if (!rows.length) { %><tr><td colspan="7" class="empty">No data.</td></tr><% } %>
+    </tbody></table></div>
+</div>

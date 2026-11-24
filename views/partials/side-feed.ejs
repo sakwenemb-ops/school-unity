@@ -1,0 +1,20 @@
+<div class="card">
+  <div class="card-head"><h2>Announcements</h2><a href="/app/announcements">All</a></div>
+  <ul class="list">
+    <% announcements.forEach(function (a) { %>
+      <li><strong><%= a.title %></strong> <% if (a.pinned) { %><span class="badge b-brand">Pinned</span><% } %><br><small><%= fmtDate(a.created_at) %> · <%= a.audience === 'all' ? 'Everyone' : a.audience %></small>
+        <p style="margin:4px 0 0;color:var(--ink-2)"><%= a.body.length > 140 ? a.body.slice(0, 140) + '…' : a.body %></p></li>
+    <% }) %>
+    <% if (!announcements.length) { %><li class="empty">No announcements yet.</li><% } %>
+  </ul>
+</div>
+<div class="card">
+  <div class="card-head"><h2>Upcoming events</h2><a href="/app/events">Calendar</a></div>
+  <ul class="list">
+    <% events.forEach(function (e) { const d = new Date(e.date + 'T00:00:00'); %>
+      <li style="display:flex;gap:12px;align-items:center"><div class="date-tile"><b><%= d.getDate() %></b><small><%= d.toLocaleString('en', { month: 'short' }) %></small></div>
+        <div><strong><%= e.title %></strong><% if (e.description) { %><br><small><%= e.description %></small><% } %></div></li>
+    <% }) %>
+    <% if (!events.length) { %><li class="empty">Nothing scheduled.</li><% } %>
+  </ul>
+</div>

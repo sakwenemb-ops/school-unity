@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('../partials/head') %></head>
+<body>
+<%- include('../partials/icons') %>
+<%
+  const role = user.role;
+  const nav = (href, icon, label, exact) => {
+    const active = exact ? (path === href || path === href + '/') : path.startsWith(href);
+    return `<a href="${href}" class="${active ? 'active' : ''}"><svg><use href="#i-${icon}"/></svg>${label}</a>`;
+  };
+%>
+<div class="shell">
+  <aside class="sidebar">
+    <a href="/app" class="brand"><span class="logo">SU</span> School Unity</a>
+    <div class="school-chip"><strong title="<%= school.name %>"><%= school.name %></strong><span><%= school.academic_year %> · <%= school.current_term %></span></div>
+    <nav class="nav">
+      <%- nav('/app', 'home', 'Dashboard', true) %>
+      <% if (role === 'student') { %>
+        <div class="nav-label">My school</div>
+        <%- nav('/app/me/profile', 'user', 'My profile') %>
+        <%- nav('/app/me/attendance', 'check', 'Attendance') %>
+        <%- nav('/app/me/results', 'award', 'Results') %>
+        <%- nav('/app/me/fees', 'cash', 'Fees') %>
+      <% } else { %>
+        <div class="nav-label">People</div>
+        <%- nav('/app/students', 'students', 'Students') %>
+        <% if (role === 'admin') { %><%- nav('/app/teachers', 'teachers', 'Teachers') %><% } %>
+        <div class="nav-label">Academics</div>
+        <%- nav('/app/classes', 'classes', 'Classes') %>
+        <%- nav('/app/subjects', 'book', 'Subjects') %>
+        <%- nav('/app/attendance', 'check', 'Attendance') %>
+        <%- nav('/app/exams', 'award', 'Exams & results') %>
+        <% if (role === 'admin') { %>
+          <div class="nav-label">Finance</div>
+          <%- nav('/app/fees', 'cash', 'Fees & payments') %>
+        <% } %>
+      <% } %>
+      <div class="nav-label">Communication</div>
+      <%- nav('/app/announcements', 'megaphone', 'Announcements') %>
+      <%- nav('/app/events', 'calendar', 'Calendar') %>
+      <% if (role === 'admin') { %>
+        <div class="nav-label">Administration</div>
+        <%- nav('/app/settings', 'settings', 'School settings') %>
+        <%- nav('/app/billing', 'card', 'Plan & billing') %>
+      <% } %>
+    </nav>
+    <div class="sidebar-foot nav">
+      <%- nav('/app/account', 'user', 'My account') %>
+      <form method="post" action="/logout"><input type="hidden" name="_csrf" value="<%= csrf %>">
+        <button class="btn btn-ghost btn-block" style="justify-content:flex-start;color:#cbd5e1;padding:8px 12px;font-weight:500"><svg><use href="#i-logout"/></svg>Sign out</button>
+      </form>
+    </div>
+  </aside>
+  <div class="main">
+    <%- include('../partials/topbar') %>
+    <main class="content">
+      <%- include('../partials/flash') %>
+      <%- body %>
+    </main>
+  </div>
+</div>
+<script src="/js/app.js"></script>
+</body>
+</html>

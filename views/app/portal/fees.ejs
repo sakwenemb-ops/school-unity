@@ -1,0 +1,14 @@
+<div class="page-head"><div><h1>My fees</h1><p><%= school.current_term %> <%= school.academic_year %></p></div></div>
+<div class="grid g-3" style="margin-bottom:16px">
+  <div class="card stat"><div><div class="num"><%= money(fees.expected, school.currency) %></div><div class="lbl">Term fees</div></div></div>
+  <div class="card stat"><div><div class="num"><%= money(fees.paid, school.currency) %></div><div class="lbl">Paid</div></div></div>
+  <div class="card stat"><div><div class="num" style="color:<%= fees.balance > 0 ? 'var(--bad)' : 'var(--ok)' %>"><%= money(fees.balance, school.currency) %></div><div class="lbl">Balance</div></div></div>
+</div>
+<div class="grid g-2">
+  <div class="card"><div class="card-head"><h2>Fee breakdown</h2></div><ul class="list">
+    <% items.forEach(function (i) { %><li style="display:flex;justify-content:space-between"><span><%= i.name %></span><b><%= money(i.amount, school.currency) %></b></li><% }) %>
+    <% if (!items.length) { %><li class="muted">No fees set for this term.</li><% } %></ul></div>
+  <div class="card"><div class="card-head"><h2>Payments</h2></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Method</th><th>Term</th><th class="num">Amount</th></tr></thead><tbody>
+    <% payments.forEach(function (p) { %><tr><td><%= fmtDate(p.paid_on) %></td><td><%= p.method %></td><td><%= p.term %></td><td class="num"><%= money(p.amount, school.currency) %></td></tr><% }) %>
+    <% if (!payments.length) { %><tr><td colspan="4" class="empty">No payments yet.</td></tr><% } %></tbody></table></div></div>
+</div>

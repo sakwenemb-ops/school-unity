@@ -1,0 +1,26 @@
+<div class="page-head"><div><h1>Subjects</h1><p>Subjects offered at <%= school.name %>. Assign them to classes from each class page.</p></div></div>
+<div class="grid <%= user.role === 'admin' ? 'g-main' : '' %>">
+  <div class="card"><div class="table-wrap"><table>
+    <thead><tr><th>Subject</th><th>Code</th><th class="num">Classes</th><% if (user.role === 'admin') { %><th></th><% } %></tr></thead>
+    <tbody>
+      <% subjects.forEach(function (s) { %>
+        <tr>
+          <% if (user.role === 'admin') { %>
+            <td colspan="2"><form method="post" action="/app/subjects/<%= s.id %>" class="filters"><input type="hidden" name="_csrf" value="<%= csrf %>">
+              <input type="text" name="name" value="<%= s.name %>" aria-label="Subject name" required><input type="text" name="code" value="<%= s.code || '' %>" aria-label="Code" style="min-width:0;width:90px"><button class="btn btn-sm">Save</button></form></td>
+          <% } else { %><td><strong><%= s.name %></strong></td><td><code><%= s.code || '—' %></code></td><% } %>
+          <td class="num"><%= s.class_count %></td>
+          <% if (user.role === 'admin') { %><td><form class="inline" method="post" action="/app/subjects/<%= s.id %>/delete" data-confirm="Delete <%= s.name %>? All marks recorded for it will be deleted."><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link-btn danger">Delete</button></form></td><% } %>
+        </tr>
+      <% }) %>
+      <% if (!subjects.length) { %><tr><td colspan="4"><div class="empty"><svg><use href="#i-book"/></svg>No subjects yet.</div></td></tr><% } %>
+    </tbody></table></div></div>
+  <% if (user.role === 'admin') { %>
+  <form class="card card-body" method="post" action="/app/subjects" style="align-self:start"><input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>Add subject</h2>
+    <div class="field"><label for="name">Name *</label><input id="name" type="text" name="name" required placeholder="Mathematics"></div>
+    <div class="field"><label for="code">Code</label><input id="code" type="text" name="code" placeholder="MAT"></div>
+    <button class="btn btn-primary btn-block">Add subject</button>
+  </form>
+  <% } %>
+</div>

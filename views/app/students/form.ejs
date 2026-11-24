@@ -1,0 +1,42 @@
+<% const editing = !!s.id; const v = (k) => s[k] == null ? '' : s[k]; %>
+<div class="page-head"><div><a class="muted" href="<%= editing ? '/app/students/' + s.id : '/app/students' %>">← Back</a><h1><%= title %></h1></div></div>
+<%- include('../../partials/errors') %>
+<form method="post" action="<%= editing ? '/app/students/' + s.id : '/app/students' %>" class="card card-body">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <fieldset><legend>Student details</legend>
+    <div class="form-grid">
+      <div class="field"><label for="first_name">First name *</label><input id="first_name" type="text" name="first_name" required value="<%= v('first_name') %>"></div>
+      <div class="field"><label for="last_name">Last name *</label><input id="last_name" type="text" name="last_name" required value="<%= v('last_name') %>"></div>
+      <div class="field"><label for="admission_no">Admission number *</label><input id="admission_no" type="text" name="admission_no" required value="<%= v('admission_no') %>"></div>
+      <div class="field"><label for="class_id">Class</label><select id="class_id" name="class_id"><option value="">— Unassigned —</option>
+        <% classes.forEach(function (c) { %><option value="<%= c.id %>" <%= String(c.id) === String(v('class_id')) ? 'selected' : '' %>><%= c.name %> <%= c.section || '' %></option><% }) %></select></div>
+      <div class="field"><label for="gender">Gender</label><select id="gender" name="gender"><option value="">—</option><option <%= v('gender') === 'Male' ? 'selected' : '' %>>Male</option><option <%= v('gender') === 'Female' ? 'selected' : '' %>>Female</option></select></div>
+      <div class="field"><label for="dob">Date of birth</label><input id="dob" type="date" name="dob" value="<%= v('dob') %>"></div>
+      <div class="field"><label for="admission_date">Admission date</label><input id="admission_date" type="date" name="admission_date" value="<%= v('admission_date') %>"></div>
+      <% if (editing) { %>
+      <div class="field"><label for="status">Status</label><select id="status" name="status">
+        <% ['active','graduated','transferred','suspended'].forEach(function (st) { %><option value="<%= st %>" <%= v('status') === st ? 'selected' : '' %>><%= st %></option><% }) %></select></div>
+      <% } %>
+      <div class="field full"><label for="address">Home address</label><input id="address" type="text" name="address" value="<%= v('address') %>"></div>
+      <div class="field full"><label for="medical_notes">Medical notes / allergies</label><textarea id="medical_notes" name="medical_notes"><%= v('medical_notes') %></textarea></div>
+    </div>
+  </fieldset>
+  <fieldset><legend>Parent / guardian</legend>
+    <div class="form-grid">
+      <div class="field"><label for="guardian_name">Name</label><input id="guardian_name" type="text" name="guardian_name" value="<%= v('guardian_name') %>"></div>
+      <div class="field"><label for="guardian_relation">Relationship</label><input id="guardian_relation" type="text" name="guardian_relation" placeholder="Mother, Father, Guardian…" value="<%= v('guardian_relation') %>"></div>
+      <div class="field"><label for="guardian_phone">Phone</label><input id="guardian_phone" type="tel" name="guardian_phone" value="<%= v('guardian_phone') %>"></div>
+      <div class="field"><label for="guardian_email">Email</label><input id="guardian_email" type="email" name="guardian_email" value="<%= v('guardian_email') %>"></div>
+    </div>
+  </fieldset>
+  <% if (!editing) { %>
+  <fieldset><legend>Student portal (optional)</legend>
+    <label class="check"><input type="checkbox" name="create_login" value="1" data-reveal="#login-fields" <%= s.create_login ? 'checked' : '' %>> Create a portal login so the student can view results, attendance and fees</label>
+    <div id="login-fields" class="form-grid" style="margin-top:12px">
+      <div class="field"><label for="login_email">Login email</label><input id="login_email" type="email" name="login_email" value="<%= v('login_email') %>"></div>
+      <div class="field"><label for="login_password">Password</label><input id="login_password" type="password" name="login_password" minlength="8"></div>
+    </div>
+  </fieldset>
+  <% } %>
+  <div class="actions"><button class="btn btn-primary"><%= editing ? 'Save changes' : 'Admit student' %></button><a class="btn" href="/app/students">Cancel</a></div>
+</form>

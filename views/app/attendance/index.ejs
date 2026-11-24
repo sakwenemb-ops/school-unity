@@ -1,0 +1,49 @@
+<div class="page-head"><div><h1>Attendance register</h1><p>Mark the daily register for a class.</p></div>
+  <a class="btn" href="/app/attendance/report"><svg><use href="#i-chart"/></svg>Attendance report</a></div>
+<div class="grid g-main">
+  <div class="card">
+    <div class="card-head">
+      <form class="filters" method="get">
+        <select name="class_id" data-autosubmit aria-label="Class"><% classes.forEach(function (c) { %><option value="<%= c.id %>" <%= cls && cls.id === c.id ? 'selected' : '' %>><%= c.name %> <%= c.section || '' %></option><% }) %></select>
+        <input type="date" name="date" value="<%= date %>" max="<%= today() %>" data-autosubmit aria-label="Date">
+        <button class="btn">Load</button>
+      </form>
+    </div>
+    <% if (!cls) { %>
+      <div class="empty"><svg><use href="#i-classes"/></svg>No classes available<%= user.role === 'teacher' ? ' — ask an admin to assign you to a class' : '' %>.</div>
+    <% } else if (!students.length) { %>
+      <div class="empty">No active students in <%= cls.name %> <%= cls.section || '' %>.</div>
+    <% } else { %>
+      <form method="post" action="/app/attendance">
+        <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="class_id" value="<%= cls.id %>"><input type="hidden" name="date" value="<%= date %>">
+        <div class="card-body" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line-2)">
+          <strong><%= cls.name %> <%= cls.section || '' %> · <%= fmtDate(date) %></strong><span class="spacer" style="flex:1"></span>
+          <button type="button" class="btn btn-sm" data-mark-all="present">Mark all present</button>
+          <button type="button" class="btn btn-sm" data-mark-all="absent">Mark all absent</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>#</th><th>Student</th><th>Status</th></tr></thead>
+          <tbody>
+            <% students.forEach(function (s, i) { const cur = s.status || 'present'; %>
+              <tr><td class="muted"><%= i + 1 %></td><td><strong><%= s.first_name %> <%= s.last_name %></strong><br><small><%= s.admission_no %></small></td>
+                <td><div class="att-opts" role="radiogroup" aria-label="Status for <%= s.first_name %>">
+                  <% ['present','absent','late','excused'].forEach(function (st) { %>
+                    <input type="radio" id="a<%= s.id %>_<%= st %>" name="s_<%= s.id %>" value="<%= st %>" <%= cur === st ? 'checked' : '' %>><label class="<%= st %>" for="a<%= s.id %>_<%= st %>"><%= st[0].toUpperCase() + st.slice(1) %></label>
+                  <% }) %>
+                </div></td></tr>
+            <% }) %>
+          </tbody></table></div>
+        <div class="card-body"><button class="btn btn-primary">Save register</button> <% if (students.some(s => s.status)) { %><span class="muted">&nbsp;Register already taken — saving will update it.</span><% } %></div>
+      </form>
+    <% } %>
+  </div>
+  <div class="card" style="align-self:start">
+    <div class="card-head"><h2>Classes on <%= fmtDate(date) %></h2></div>
+    <ul class="list">
+      <% summary.forEach(function (r) { %>
+        <li style="display:flex;justify-content:space-between;align-items:center;gap:8px"><a href="/app/attendance?class_id=<%= r.id %>&date=<%= date %>"><%= r.name %> <%= r.section || '' %></a>
+          <% if (r.marked) { %><span class="badge b-ok"><%= Math.round(100 * r.present / r.marked) %>% present</span><% } else { %><span class="badge b-warn">Not taken</span><% } %></li>
+      <% }) %>
+    </ul>
+  </div>
+</div>
