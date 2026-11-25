@@ -3,7 +3,10 @@
 //   POST /payments/initialize   start a payment, returns { transaction, authorization_url }
 //   GET  /payments/{reference}  fetch a payment and its current status
 // Requests are authenticated with the account's public key in the Authorization header.
-// Sandbox keys create test payments; live keys take real money.
+// Sandbox keys (pk_test...) create test payments; live keys take real money.
+// Verified against the Notch Pay sandbox: initialize returns { transaction: { reference: "trx...",
+// merchant_reference, status: "pending" }, authorization_url }, and GET /payments/{trx reference}
+// returns { transaction: { status } } with status pending | processing | complete | failed | canceled | expired.
 const { notchpay } = require('./config');
 
 class NotchPayError extends Error {

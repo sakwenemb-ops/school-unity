@@ -60,7 +60,8 @@ router.get('/pay/return/:reference', async (req, res, next) => {
 async function webhook(req, res) {
   const b = req.body || {};
   const d = b.data || {};
-  const row = payments.findByAnyReference([d.reference, d.merchant_reference, d.trxref, d.transaction?.reference, d.transaction?.merchant_reference, b.reference, b.merchant_reference]);
+  // Notch Pay sends { type: 'payment.complete', data: { id, reference, status, ... } }.
+  const row = payments.findByAnyReference([d.reference, d.merchant_reference, d.trxref, d.id, d.transaction?.reference, d.transaction?.merchant_reference, b.reference, b.merchant_reference]);
   if (!row) return res.status(200).json({ received: true, matched: false });
   try {
     const updated = await payments.refresh(row);
